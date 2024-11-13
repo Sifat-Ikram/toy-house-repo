@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo/Toy House Final.svg";
 import { BsPerson } from "react-icons/bs";
 import { IoMdHeartEmpty } from "react-icons/io";
-import { IoCartOutline, IoSearchOutline } from "react-icons/io5";
+import { IoCartOutline, IoSearchOutline, IoMenu } from "react-icons/io5";
 import { useState } from "react";
 
 const Navbar = () => {
@@ -34,11 +34,11 @@ const Navbar = () => {
 
   const navLinks = (
     <>
-      <li className="font-coiny uppercase text-[8px] sm:text-sm md:text-[10px] lg:text-sm">
-        <a>Category</a>
+      <li className="font-coiny uppercase text-[8px] sm:text-sm md:text-sm lg:text-lg">
+        <Link to="/products">Category</Link>
       </li>
-      <li className="font-coiny uppercase text-[8px] sm:text-sm md:text-[10px] lg:text-sm dropdown dropdown-hover">
-        <a tabIndex={0} role="button">
+      <li className="font-coiny uppercase text-[8px] sm:text-sm md:text-sm lg:text-lg dropdown dropdown-hover">
+        <a tabIndex={0} role="button flex">
           Mother and Baby
         </a>
         <ul
@@ -53,59 +53,100 @@ const Navbar = () => {
           </li>
         </ul>
       </li>
-      <li className="font-coiny uppercase text-[8px] sm:text-sm md:text-[10px] lg:text-sm">
-        <a>toy finder</a>
+      <li className="font-coiny uppercase text-[8px] sm:text-sm md:text-sm lg:text-lg">
+        <a className="flex">toy finder</a>
+      </li>
+    </>
+  );
+
+  const mobileNavLinks = (
+    <>
+      <li className="relative dropdown dropdown-right dropdown-hover">
+        <div
+          tabIndex={0}
+          role="button"
+          href="#"
+          className="flex justify-between items-center font-roboto uppercase text-[8px] text-base py-1 px-8"
+        >
+          <a>Category</a>
+        </div>
+        <ul className="dropdown-content bg-base-100 z-[1] flex justify-center gap-5 w-60 p-2 shadow">
+          <li>
+            <a href="#" className="flex justify-center hover:bg-white">
+              Submenu 1
+            </a>
+          </li>
+          <li>
+            <a href="#" className="flex justify-center hover:bg-white">
+              Submenu 2
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li className="relative dropdown dropdown-right dropdown-hover">
+        <div
+          tabIndex={0}
+          role="button"
+          href="#"
+          className="flex justify-between items-center font-roboto uppercase text-[8px] text-base py-1 px-8"
+        >
+          <a className="flex justify-center gap-2 items-center">
+            Mother and Baby
+          </a>
+        </div>
+        <ul className="dropdown-content bg-base-100 z-[1] flex justify-center gap-5 w-60 p-2 shadow">
+          <li>
+            <a href="#" className="flex justify-center hover:bg-white">
+              Submenu 1
+            </a>
+          </li>
+          <li>
+            <a href="#" className="flex justify-center hover:bg-white">
+              Submenu 2
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li className="relative dropdown dropdown-right dropdown-hover">
+        <div
+          tabIndex={0}
+          role="button"
+          href="#"
+          className="flex justify-between items-center font-roboto uppercase text-[8px] text-base py-1 px-8"
+        >
+          <a className="flex justify-center gap-2 items-center">toy finder</a>
+        </div>
+        <ul className="dropdown-content bg-base-100 z-[1] flex justify-center gap-5 w-60 p-2 shadow">
+          <li>
+            <a href="#" className="flex justify-center hover:bg-white">
+              Submenu 1
+            </a>
+          </li>
+          <li>
+            <a href="#" className="flex justify-center hover:bg-white">
+              Submenu 2
+            </a>
+          </li>
+        </ul>
       </li>
     </>
   );
 
   return (
-    <div className="top-0 sticky bg-[#FEF987] shadow z-50">
-      <div className="navbar justify-between items-center sm:w-11/12 md:w-5/6 mx-auto">
-        <div className="navbar-start md:gap-3">
-          <div className="dropdown">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn bg-[#FEF987] hover:bg-[#FEF987] md:hidden"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h8m-8 6h16"
-                />
-              </svg>
+    <div className="top-0 sticky bg-[#FEF987] shadow z-40">
+      <div className="flex justify-between items-center py-2 max-sm:px-3 sm:w-11/12 md:w-5/6 mx-auto">
+        <div className="flex md:gap-3">
+          <div className="relative md:hidden">
+            {/* Main Button for Dropdown */}
+            <div className="relative group">
+              <IoMenu
+                role="button"
+                className="bg-[#FEF987] text-3xl border-transparent inline-flex items-center"
+              />
+              <ul className="bg-base-100 rounded-md p-2 z-10 w-fit shadow absolute hidden group-hover:flex flex-col">
+                {mobileNavLinks}
+              </ul>
             </div>
-            <ul
-              tabIndex={0}
-              className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
-            >
-              <li>
-                <a>Item 1</a>
-              </li>
-              <li>
-                <a>Parent</a>
-                <ul className="p-2">
-                  <li>
-                    <a>Submenu 1</a>
-                  </li>
-                  <li>
-                    <a>Submenu 2</a>
-                  </li>
-                </ul>
-              </li>
-              <li>
-                <a>Item 3</a>
-              </li>
-            </ul>
           </div>
           <div className="hidden md:block">
             <Link to="/">
@@ -117,18 +158,18 @@ const Navbar = () => {
             </Link>
           </div>
           <div className="hidden md:flex lg:hidden">
-            <ul className="flex justify-center items-center mt-2 md:gap-2 px-1">
+            <ul className="flex justify-center items-center mt-2 md:gap-4 px-1">
               {navLinks}
             </ul>
           </div>
         </div>
-        <div className="navbar-center justify-center">
+        <div className="flex items-center justify-center">
           <div className="block md:hidden">
             <Link to="/">
               <img
                 src={logo}
                 alt="Toy House Logo"
-                className="h-[40px] w-[80px]"
+                className="h-[50px] w-[80px]"
               />
             </Link>
           </div>
@@ -151,20 +192,20 @@ const Navbar = () => {
             </div>
           </div>
         </div>
-        <div className="navbar-end gap-5">
+        <div className="flex justify-center items-center gap-2 sm:gap-5">
           <IoSearchOutline
             onClick={() => handleSearchClick()}
             className="text-[22px] cursor-pointer lg:hidden"
           />
           <Link to="/cart" className="relative">
-            <IoMdHeartEmpty className="font-semibold text-lg rounded-full transition-all duration-300 ease-in-out hover:scale-110" />
+            <IoMdHeartEmpty className="font-semibold text-base sm:text-xl md:text-2xl rounded-full transition-all duration-300 ease-in-out hover:scale-110" />
           </Link>
           <Link to="/cart" className="relative">
-            <IoCartOutline className="font-semibold text-lg rounded-full transition-all duration-300 ease-in-out hover:scale-110" />
+            <IoCartOutline className="font-semibold text-base sm:text-xl md:text-2xl rounded-full transition-all duration-300 ease-in-out hover:scale-110" />
           </Link>
           <div className="dropdown dropdown-end">
             <div tabIndex={0} role="button" className="relative">
-              <BsPerson className="font-semibold text-lg rounded-full transition-all duration-300 ease-in-out hover:scale-110 shadow-md" />
+              <BsPerson className="font-semibold text-base sm:text-xl md:text-2xl rounded-full transition-all duration-300 ease-in-out hover:scale-110 shadow-md" />
             </div>
             <ul
               tabIndex={0}

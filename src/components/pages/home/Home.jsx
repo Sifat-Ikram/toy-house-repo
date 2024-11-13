@@ -7,13 +7,13 @@ import WheelsCollection from "./WheelsCollection";
 
 const Home = () => {
   return (
-    <div className="min-h-screen space-y-10 md:space-y-20">
+    <div className="">
       <ShopByAge />
       <Support />
       <NewArrival />
       <FeaturesCollection />
       <WheelsCollection />
-      {/* <Testimonials /> */}
+      <Testimonials />
     </div>
   );
 };
