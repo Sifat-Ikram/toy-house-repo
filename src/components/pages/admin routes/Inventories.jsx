@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form"; // Import useForm
 import axios from "axios";
 import { BiEdit } from "react-icons/bi";
@@ -22,26 +22,11 @@ const Inventories = () => {
   const { register, handleSubmit } = useForm();
   const [uploadedImages, setUploadedImages] = useState([]);
   const [isImageVisible, setIsImageVisible] = useState(false);
-  const [sentData, setSentData] = useState(false);
   const [isAddingInventory, setIsAddingInventory] = useState(false);
-  const [selectedImages, setSelectedImages] = useState(false);
   const [selectedInventoryId, setSelectedInventoryId] = useState(null);
   const [images] = useImage();
 
   console.log(images);
-  
-
-  useEffect(() => {
-    if (sentData && inventories.length > 0) {
-      inventories.forEach((inventory) => {
-        if (inventory.color_id === sentData.color_id) {
-          setSelectedImages(sentData);
-        } else {
-          return;
-        }
-      });
-    }
-  }, [inventories, sentData]);
 
   if (!inventories) {
     return <span className="loading loading-ring loading-lg"></span>;
@@ -100,8 +85,6 @@ const Inventories = () => {
     setUploadedImages(newUploadedImages);
   };
 
-  console.log(selectedImages);
-
   const handleRemoveImage = (inventoryId, imageId) => {
     setUploadedImages((prevImages) => {
       const newImages = { ...prevImages };
@@ -131,10 +114,6 @@ const Inventories = () => {
         is_featured: false,
       },
     };
-
-    console.log(formattedData);
-
-    setSentData(formattedData);
 
     try {
       const response = await axiosPublic.post(
@@ -297,37 +276,7 @@ const Inventories = () => {
                       </tr>
                       {isImageVisible && (
                         <><h1>No image</h1></>
-                        // <div>
-                        //   {uploadedImages && (
-                        //     <div className="p-4 space-y-4 bg-white rounded-lg shadow-md">
-                        //       <div className="flex items-center gap-4 mt-4">
-                        //         {uploadedImages.map((image) => (
-                        //           <div
-                        //             key={image?.image_id}
-                        //             className="relative w-24 h-24"
-                        //           >
-                        //             {/* Image */}
-                        //             <img
-                        //               src={image.image_url}
-                        //               alt={image?.image_id}
-                        //               className="rounded-md shadow-md w-full h-full object-cover"
-                        //             />
-                        //             {/* Close Button */}
-                        //             <button
-                        //               type="button"
-                        //               className="absolute top-0 right-0 bg-white text-black text-xs rounded-full px-1 shadow hover:bg-red-500 hover:text-white"
-                        //               onClick={() =>
-                        //                 handleRemoveImage(image?.image_id)
-                        //               }
-                        //             >
-                        //               X
-                        //             </button>
-                        //           </div>
-                        //         ))}
-                        //       </div>
-                        //     </div>
-                        //   )}
-                        // </div>
+                       
                       )}
                       {selectedInventoryId === inventory.inventory_id && (
                         <tr>
