@@ -1,11 +1,19 @@
-import logo from "../../assets/logo/Toy House Final.svg";
+import { useLocation } from "react-router-dom";
+import logo from "../../assets/logo/ToyHouse_Logo_trans.png";
 
 const Footer = () => {
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
+
   return (
-    <div className="bg-[#FFFCB7] pt-14 sm:pt-10 md:pt-20 space-y-8 relative max-sm:w-full">
-      <div className="sm:w-11/12 md:w-4/5 mx-auto flex flex-col sm:flex-row justify-center sm:gap-6 lg:gap-10 items-center py-5 space-y-10 sm:space-y-0">
+    <div
+      className={`bg-[#FFFCB7] ${
+        isHomePage ? "pt-60 sm:pt-48 z-10 -mt-32" : "pt-20"
+      } space-y-8 relative max-sm:w-full`}
+    >
+      <div className="w-11/12 md:w-4/5 mx-auto flex flex-col sm:flex-row justify-center sm:gap-6 lg:gap-10 items-center py-5 space-y-10 sm:space-y-0">
         <div className="w-full sm:w-1/2 mx-auto flex flex-col items-center lg:items-start space-y-5">
-          <img src={logo} className="h-[68px] w-68px" alt="Logo" />
+          <img src={logo} className="h-[90px]" alt="Logo" />
           <p className="text-base font-normal font-roboto text-black text-center lg:text-left">
             Join our newsletter to stay up to date on features and releases.
           </p>
@@ -31,31 +39,31 @@ const Footer = () => {
             <h1 className="font-roboto text-xs md:text-sm lg:text-base font-semibold">
               Column One
             </h1>
-            <p className="font-roboto text-sm">Link 1</p>
-            <p className="font-roboto text-sm">Link 2</p>
-            <p className="font-roboto text-sm">Link 3</p>
-            <p className="font-roboto text-sm">Link 4</p>
-            <p className="font-roboto text-sm">Link 5</p>
+            <p className="font-roboto text-sm">Link One</p>
+            <p className="font-roboto text-sm">Link Two</p>
+            <p className="font-roboto text-sm">Link Three</p>
+            <p className="font-roboto text-sm">Link Four</p>
+            <p className="font-roboto text-sm">Link Five</p>
           </div>
           <div className="flex flex-col space-y-3">
             <h1 className="font-roboto text-xs md:text-sm lg:text-base font-semibold">
               Column Two
             </h1>
-            <p className="font-roboto text-sm">Link 1</p>
-            <p className="font-roboto text-sm">Link 2</p>
-            <p className="font-roboto text-sm">Link 3</p>
-            <p className="font-roboto text-sm">Link 4</p>
-            <p className="font-roboto text-sm">Link 5</p>
+            <p className="font-roboto text-sm">Link Six</p>
+            <p className="font-roboto text-sm">Link Seven</p>
+            <p className="font-roboto text-sm">Link Eight</p>
+            <p className="font-roboto text-sm">Link Nine</p>
+            <p className="font-roboto text-sm">Link Ten</p>
           </div>
           <div className="flex flex-col space-y-3">
             <h1 className="font-roboto text-xs md:text-sm lg:text-base font-semibold">
-              Column Three
+              Follow Us
             </h1>
-            <p className="font-roboto text-sm">Link 1</p>
-            <p className="font-roboto text-sm">Link 2</p>
-            <p className="font-roboto text-sm">Link 3</p>
-            <p className="font-roboto text-sm">Link 4</p>
-            <p className="font-roboto text-sm">Link 5</p>
+            <p className="font-roboto text-sm">Facebook</p>
+            <p className="font-roboto text-sm">Instagram</p>
+            <p className="font-roboto text-sm">X</p>
+            <p className="font-roboto text-sm">LinkedIn</p>
+            <p className="font-roboto text-sm">Youtube</p>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosPublic = axios.create({
-    baseURL: 'https://shop-sphere-server-ten.vercel.app'
+    baseURL: "https://backend.toyhouseglobal.com:8080",
 })
 
 const useAxiosPublic = () => {

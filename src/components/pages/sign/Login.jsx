@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
-import img from "../../../assets/sign/login.png";
+import img from "../../../assets/sign/sign_in.webp";
 import { useLocation, useNavigate } from "react-router-dom";
+import useAxiosPublic from "../../hooks/useAxiosPublic";
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const axiosPublic = useAxiosPublic();
   const { register, handleSubmit, setValue } = useForm();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,13 +16,13 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
-    // Check localStorage for saved email and password
     const savedEmail = localStorage.getItem("rememberedEmail");
     const savedPassword = localStorage.getItem("rememberedPassword");
 
     if (savedEmail && savedPassword) {
       setValue("email", savedEmail);
-      setRememberMe(true); // Pre-check the "Remember Me" checkbox
+      setValue("password", savedPassword);
+      setRememberMe(true);
     }
   }, [setValue]);
 
@@ -37,14 +39,25 @@ const Login = () => {
     try {
       // Simulating the login process
       if (rememberMe) {
-        localStorage.setItem("rememberedEmail", data.email);
+        localStorage.setItem("rememberedEmail", data.username);
+        localStorage.setItem("rememberedPassword", data.password);
       } else {
         localStorage.removeItem("rememberedEmail");
+        localStorage.removeItem("rememberedPassword");
       }
-      // Proceed with authentication logic here
-      setError("");
+      const payload = {
+        username: data.username,
+        password: data.password,
+      };
 
-      //   navigate(location?.state ? location.state : "/");
+      const response = await axiosPublic.post(
+        `/api/v1/open/users/login?username=${data.username}&password=${data.password}&request-id=1234`,
+        payload
+      );
+      console.log("Registration Successful:", response.data);
+
+      setError("");
+      navigate(location?.state ? location.state : "/");
       console.log(data);
     } catch (error) {
       console.log(error.message);
@@ -61,43 +74,50 @@ const Login = () => {
   };
 
   return (
-    <div className="hero min-h-screen py-8 bg-gradient-to-r from-[#f0f4ff] to-[#ffffff]">
-      <div className="flex items-center flex-col lg:flex-row lg:gap-10 gap-8">
+    <div className="w-5/6 mx-auto min-h-screen py-8">
+      <div className="flex items-center flex-col lg:flex-row gap-20">
         {/* Image Section */}
-        <div className="flex-1">
+        <div className="lg:w-2/5 lg:ml-10">
           <img
             src={img}
-            className="w-full h-auto mx-auto lg:mx-0 shadow-lg rounded-lg"
+            className="w-3/4 mx-auto h-3/5 lg:w-[500px] lg:h-[500px] lg:mx-0 lg:mt-16"
             alt="Authentication illustration"
           />
         </div>
 
         {/* Form Section */}
-        <div className="flex flex-col justify-center items-center gap-5 px-8 py-10 w-full max-w-xl md:shadow-2xl bg-white rounded-lg">
+        <div className="lg:flex-1 flex flex-col justify-center items-center gap-5 px-8 py-10 w-full max-w-xl md:shadow-2xl bg-white rounded-lg">
           {/* Heading */}
           <div className="text-center mb-1 lg:mb-3">
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#03b4f6] tracking-tight leading-tight mb-1">
-              Join Us Today!
+              Welcome back!
             </h1>
-            <p className="text-sm md:text-lg text-gray-600">
-              Register to explore amazing features
+            <p className="text-sm md:text-lg text-gray-600 px-10">
+              Please log in to access your account and enjoy personalized
+              features
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="w-11/12 mx-auto space-y-2">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="w-11/12 mx-auto space-y-2"
+          >
             {/* Email Input */}
             <div>
               <label className="label">
-                <span className="label-text text-gray-600">Email</span>
+                <span className="label-text text-gray-600">
+                  Email or Username
+                </span>
               </label>
               <input
-                name="email"
-                type="email"
-                {...register("email")}
-                placeholder="Enter your email"
+                name="username"
+                type="text"
+                {...register("username", {
+                  required: "username is required",
+                })}
+                placeholder="Enter your email or username"
                 className="input input-bordered w-full"
-                required
               />
             </div>
 
@@ -108,6 +128,8 @@ const Login = () => {
               </label>
               <input
                 name="password"
+                {...register("password", { required: "Password is required" })}
+                aria-label="Password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 className="input input-bordered w-full"
@@ -157,7 +179,10 @@ const Login = () => {
           <div className="text-center">
             <h1>
               Don't have an account?{" "}
-              <a className="text-[#03b4f6] text-lg hover:underline" href="/register">
+              <a
+                className="text-[#03b4f6] text-lg hover:underline"
+                href="/register"
+              >
                 Register
               </a>{" "}
               here

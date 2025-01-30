@@ -1,89 +1,53 @@
-import "swiper/css";
-import "swiper/css/pagination";
-import "swiper/css/effect-fade";
 import { motion } from "framer-motion";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, EffectFade } from "swiper/modules";
-import img1 from "../../../assets/banner/01.jpg";
-import img2 from "../../../assets/banner/02.jpg";
-import img3 from "../../../assets/banner/03.png";
-import img4 from "../../../assets/banner/04.jpg";
-import img5 from "../../../assets/banner/05.png";
-import img6 from "../../../assets/banner/06.png";
+import Lottie from "lottie-react";
+import video from "../../../assets/banner/Hero banner toyhouse v2.json";
+import { Link } from "react-router-dom";
 
 const Banner = () => {
-  const text = "Designed for Play Built for Adventure!".split(" ");
-
-  const bannerImage = [
-    {
-      _id: 1,
-      image: img1,
-    },
-    {
-      _id: 2,
-      image: img2,
-    },
-    {
-      _id: 3,
-      image: img3,
-    },
-    {
-      _id: 4,
-      image: img4,
-    },
-    {
-      _id: 5,
-      image: img5,
-    },
-    {
-      _id: 6,
-      image: img6,
-    },
-  ];
-
   return (
-    <div className="flex flex-col-reverse lg:flex-row-reverse mb-20 justify-between items-center max-sm:mx-2 max-md:mx-4 max-lg:mx-6 max-lg:gap-10 max-lg:mt-10">
-      {/* Right side Swiper */}
-      <div className="w-full lg:w-3/5">
-        <Swiper
-          spaceBetween={30}
-          effect="fade"
-          centeredSlides={true}
-          autoplay={{
-            delay: 2500,
-            disableOnInteraction: false,
-          }}
-          modules={[Autoplay, EffectFade]}
-          className="mySwiper"
-        >
-          {bannerImage.map((image) => (
-            <SwiperSlide key={image._id}>
-              <img
-                src={image.image}
-                alt=""
-                className="h-[400px] w-full object-cover"
-              />
-            </SwiperSlide>
-          ))}
-        </Swiper>
+    <div className="relative h-screen flex flex-col sm:flex-row items-center md:items-stretch p-0 m-0 overflow-hidden">
+      {/* Floating Decorations */}
+      <div className="absolute top-7 left-10 w-14 sm:w-20 md:w-24 lg:w-32 h-14 sm:h-20 md:h-24 lg:h-32 bg-[#FDD835] opacity-60 rounded-full sm:top-3 sm:left-10 md:top-0 md:left-20"></div>
+      <div className="absolute -bottom-10 left-20 w-6 sm:w-10 md:w-16 lg:w-24 h-6 sm:h-10 md:h-16 lg:h-24 bg-[#4CAF50] opacity-60 rounded-full sm:bottom-8 sm:left-1/2 md:bottom-0 lg:bottom-14 md:left-1/3"></div>
+
+      {/* Content Section */}
+      <div className="relative h-full w-full sm:w-1/2 z-10 flex flex-col items-center sm:items-start 
+      justify-center gap-5 sm:gap-10 p-4 sm:ml-5 md:ml-10 lg:ml-16">
+        <div className="text-center sm:text-left">
+          <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-6xl font-bold drop-shadow-lg">
+            Welcome to
+          </h1>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold drop-shadow-lg text-[#317ff3]">
+            Toy House!
+          </h1>
+          <p className="mt-2 sm:mt-4 md:mt-6 text-base sm:text-lg md:text-2xl font-bold drop-shadow-sm">
+            Let’s Bring Joy to Every Little Heart!
+          </p>
+        </div>
+        <div className="flex justify-start gap-4">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            className="px-4 md:px-5 lg:px-6 py-1 sm:py-[6px] md:py-2 lg:py-3 bg-[#317ff3] hover:bg-[#31b2f3] text-lg font-semibold text-white rounded-full shadow-lg transition-all cursor-pointer"
+          >
+            <Link to={"/products"}>Shop Now</Link>
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            className="px-4 md:px-5 lg:px-6 py-1 sm:py-[6px] md:py-2 lg:py-3 bg-[#317ff3] hover:bg-[#31b2f3] text-lg font-semibold text-white rounded-full shadow-lg transition-all cursor-pointer"
+          >
+            Best Sellers
+          </motion.button>
+        </div>
       </div>
 
-      {/* Left side text */}
-      <div className="flex-1 px-4 sm:px-6 md:mx-5 lg:mx-[30px] text-center lg:text-left">
-        {text.map((el, i) => (
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{
-              duration: 0.25,
-              delay: i / 10,
-            }}
-            className="text-[28px] sm:text-[35px] md:text-[45px] lg:text-[55px] xl:text-[60px] font-bold"
-            key={i}
-          >
-            {el}{" "}
-          </motion.span>
-        ))}
+      {/* Video Section */}
+      <div className="sm:flex-1 w-full md:h-full">
+        <Lottie
+          autoplay
+          loop
+          animationData={video}
+          className="w-full h-full object-cover"
+        />
       </div>
     </div>
   );

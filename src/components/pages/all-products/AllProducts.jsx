@@ -1,92 +1,113 @@
-import { useState } from "react";
-import Rating from "react-rating";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import ProductFilters from "./ProductFilters";
+import useNewProducts from "../../hooks/useNewProducts";
 import { Link } from "react-router-dom";
-import useProduct from "../../hooks/useProduct";
+import { Rating } from "@smastrom/react-rating";
+import "@smastrom/react-rating/style.css";
 
 const AllProducts = () => {
-  const [product] = useProduct();
+  const [newProducts, refetch, isLoading, error] = useNewProducts();
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [selectedBrand, setSelectedBrand] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedAge, setSelectedAge] = useState("");
-  const [selectedFeatures, setSelectedFeatures] = useState("");
   const [priceRange, setPriceRange] = useState([0, 2000]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [voucherCode, setVoucherCode] = useState("");
-  const [voucherError, setVoucherError] = useState("");
-  const [isVoucherApplied, setIsVoucherApplied] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("card");
   const [filtersVisible, setFiltersVisible] = useState(true);
-  const [filtersNotVisible, setFiltersNotVisible] = useState(false);
+  const [filtersDrawerVisible, setFiltersDrawerVisible] = useState(false);
   const [sortOrder, setSortOrder] = useState("");
+  const [page, setPage] = useState(0);
+  const [allProducts, setAllProducts] = useState([]);
+  const [isFetching, setIsFetching] = useState(false);
 
-  const productsPerPage = 12;
+  useEffect(() => {
+    if (newProducts.length > 0) {
+      setAllProducts((prevProducts) => [...prevProducts, ...newProducts]);
+      setIsFetching(false);
+    }
+  }, [newProducts]);
 
-  if (!product.length) {
-    return <p className="text-center text-red-500">Product not found</p>;
+  // Scroll event listener for infinite scrolling
+  useEffect(() => {
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } =
+        document.documentElement;
+
+      if (
+        scrollTop + clientHeight >= scrollHeight - 100 && // Near the bottom
+        !isLoading &&
+        !isFetching
+      ) {
+        setPage((prevPage) => prevPage + 1);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isLoading, isFetching]);
+
+  // Fetch next page of products when `page` changes
+  useEffect(() => {
+    if (page > 0) {
+      setIsFetching(true); // Set fetching state
+      refetch(); // Manually trigger data fetching via the existing hook
+    }
+  }, [page, refetch]);
+
+  // Error handling (optional)
+  if (error) {
+    return <div>Error loading products: {error.message}</div>;
   }
 
-  const filteredProducts = product
-    .filter(
-      (prod) =>
-        (selectedBrand === "" || prod?.brand === selectedBrand) &&
-        (selectedAge === "" || prod?.age === selectedAge) &&
-        (selectedFeatures === "" || prod?.features === selectedFeatures) &&
-        prod.price >= priceRange[0] &&
-        prod.price <= priceRange[1] &&
-        prod.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+  const filteredProducts = allProducts
+    ?.filter((prod) => {
+      const matchesBrand =
+        selectedBrand === "" || prod?.brand?.name === selectedBrand;
+      const matchesCategory =
+        selectedCategory === "" || prod.category?.name === selectedCategory;
+      const matchesAge =
+        selectedAge === "" ||
+        (selectedAge >= prod.minimum_age_range &&
+          selectedAge <= prod.maximum_age_range);
+      const matchesPrice =
+        prod.base_price >= priceRange[0] && prod.base_price <= priceRange[1];
+      const matchesSearch =
+        searchTerm === "" ||
+        (prod.product_name || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+
+      return (
+        matchesBrand &&
+        matchesCategory &&
+        matchesAge &&
+        matchesPrice &&
+        matchesSearch
+      );
+    })
     .sort((a, b) => {
-      if (sortOrder === "highToLow") return b.price - a.price;
-      if (sortOrder === "lowToHigh") return a.price - b.price;
+      if (sortOrder === "highToLow") return b.base_price - a.base_price;
+      if (sortOrder === "lowToHigh") return a.base_price - b.base_price;
       return 0;
     });
 
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = filteredProducts.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
-  );
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  const openDrawer = (item) => {
-    setSelectedProduct(item);
-    document.getElementById("drawer-toggle").checked = true;
-  };
-
-  const handleQuantityChange = (event) => {
-    const newQuantity = Math.max(1, Number(event.target.value));
-    setQuantity(newQuantity);
-  };
-
-  const applyVoucher = () => {
-    if (voucherCode === "DISCOUNT100") {
-      setIsVoucherApplied(true);
-    } else {
-      setVoucherError("Invalid voucher code");
-    }
-  };
-
   const handleOutsideClick = (e) => {
     if (e.target.id === "overlay") {
-      setFiltersNotVisible(false);
+      setFiltersDrawerVisible(false);
     }
   };
+  const clearCategory = () => setSelectedCategory("");
+  const clearBrand = () => setSelectedBrand("");
+  const clearAll = () => {
+    setSelectedCategory("");
+    setSelectedBrand("");
+    setPriceRange([0, 2000]);
+    setSearchTerm("");
+    setSelectedAge("");
+  };
 
-  const getTotalPrice = () => {
-    const basePrice = selectedProduct.price * quantity;
-    return isVoucherApplied ? basePrice - 100 : basePrice;
+  const handleAddToCart = (product) => {
+    console.log(product);
   };
 
   return (
@@ -114,24 +135,22 @@ const AllProducts = () => {
               is curated to provide you with only the finest options.
             </motion.p>
           </div>
-          <div className="w-full max-sm:px-2 sm:w-11/12 mx-auto flex flex-wrap justify-between items-center my-3 px-4 py-2 bg-gray-50 rounded-lg">
+          <div className="w-full sm:w-11/12 mx-auto max-sm:px-2 flex flex-wrap justify-between items-center my-3 px-4 py-2 bg-base-200">
             {/* Filters Toggle Button */}
             <div
               onClick={() => setFiltersVisible(!filtersVisible)}
-              className="hidden sm:block text-base sm:text-lg md:text-xl font-semibold text-gray-800 hover:text-gray-600 px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
+              className="hidden sm:block text-sm sm:text-base md:text-lg font-semibold text-gray-800 hover:text-gray-600 px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
             >
               {filtersVisible ? "Hide Filters" : "Show Filters"}
             </div>
-
-            {/* Filters Toggle Button fot mobile */}
             <div
-              onClick={() => setFiltersNotVisible(!filtersNotVisible)}
-              className="block sm:hidden text-base sm:text-lg md:text-xl font-semibold text-gray-800 hover:text-gray-600 px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
+              onClick={() => setFiltersDrawerVisible(!filtersDrawerVisible)}
+              className="block sm:hidden text-sm sm:text-base md:text-lg font-semibold text-gray-800 hover:text-gray-600 px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
             >
-              {!filtersNotVisible ? "Show Filters" : "Hide Filters"}
+              {!filtersDrawerVisible ? "Show Filters" : "Hide Filters"}
             </div>
 
-            {filtersNotVisible && (
+            {filtersDrawerVisible && (
               <div
                 id="overlay"
                 onClick={handleOutsideClick}
@@ -141,158 +160,30 @@ const AllProducts = () => {
 
             {/* Filter Drawer */}
             <div
-              className={`fixed top-0 left-0 h-full bg-white shadow-lg z-40 transform ${
-                filtersNotVisible ? "translate-x-0" : "-translate-x-full"
+              className={`fixed top-0 left-0 h-full bg-white shadow-lg z-40 pt-28 px-3 transform ${
+                filtersDrawerVisible ? "translate-x-0" : "-translate-x-full"
               } transition-transform duration-300 ease-in-out`}
               style={{ width: "250px" }}
             >
-              <h1
-                onClick={() => setFiltersNotVisible(false)}
-                className="absolute top-4 right-4"
-              >
-                Close
-              </h1>
-              <div className="flex flex-col bg-base-100 w-full sm:w-40 lg:w-[260px] mt-10 py-6 space-y-4 px-3 md:px-5 lg:shadow-lg rounded-3xl">
-                {/* Search */}
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Search product..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full border border-gray-400 p-2 rounded text-sm sm:text-base placeholder-gray-400"
-                  />
-                </div>
-
-                {/* Brand filter */}
-                <div>
-                  <label className="block text-sm sm:text-base font-medium mb-2">
-                    Brand
-                  </label>
-                  <select
-                    className="w-full border p-2 rounded text-sm sm:text-base"
-                    value={selectedBrand}
-                    onChange={(e) => setSelectedBrand(e.target.value)}
-                  >
-                    <option value="">All Brands</option>
-                    {[...new Set(product.map((prod) => prod.brand))].map(
-                      (brand) => (
-                        <option key={brand} value={brand}>
-                          {brand}
-                        </option>
-                      )
-                    )}
-                  </select>
-                </div>
-
-                {/* Price Range */}
-                <div>
-                  <label className="block text-xs sm:text-sm md:text-base lg:text-lg font-medium mb-2">
-                    Price Range
-                  </label>
-                  <div className="space-y-3">
-                    {/* Price Range Options */}
-                    {[
-                      { label: "0 - 500", value: [0, 500] },
-                      { label: "500 - 2000", value: [500, 2000] },
-                      { label: "2000 - 5000", value: [2000, 5000] },
-                      { label: "5000 - 10000", value: [5000, 10000] },
-                      { label: "10000 - 15000", value: [10000, 15000] },
-                      { label: "15000+", value: [15000, Infinity] },
-                    ].map(({ label, value }) => (
-                      <label
-                        key={label}
-                        className="flex items-center space-x-3 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="priceRange"
-                          value={value}
-                          checked={
-                            priceRange[0] === value[0] &&
-                            priceRange[1] === value[1]
-                          }
-                          onChange={() => setPriceRange(value)}
-                          className="radio radio-sm"
-                        />
-                        <span className="text-xs sm:text-sm lg:text-base">
-                          BDT {label}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Age Group filter */}
-                <div>
-                  <label className="block text-xs sm:text-sm md:text-base lg:text-lg font-medium mb-2">
-                    Age Group
-                  </label>
-                  <div className="space-y-3">
-                    {/* Price Range Options */}
-                    {["1-2", "3-5", "6-11", "12+"].map((age) => (
-                      <label
-                        key={age}
-                        className="flex items-center space-x-3 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="age"
-                          value={age}
-                          checked={selectedAge === age}
-                          onChange={(e) => setSelectedAge(e.target.value)}
-                          className="radio radio-sm"
-                        />
-                        <span className="text-xs sm:text-sm lg:text-base text-gray-700">
-                          {age} years
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Features filter */}
-                <div>
-                  <label className="block text-xs sm:text-sm md:text-base lg:text-lg font-medium mb-2">
-                    Features
-                  </label>
-                  <div className="space-y-3">
-                    {/* Price Range Options */}
-                    {[
-                      "educational",
-                      "interactive",
-                      "battery-operated",
-                      "buildable",
-                    ].map((features) => (
-                      <label
-                        key={features}
-                        className="flex items-center space-x-3 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="features"
-                          value={features}
-                          checked={selectedFeatures === features}
-                          onChange={(e) => setSelectedFeatures(e.target.value)}
-                          className="radio radio-sm"
-                        />
-                        <span className="text-xs sm:text-sm md:text-base text-gray-700">
-                          {features} years
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <ProductFilters
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                selectedBrand={selectedBrand}
+                setSelectedBrand={setSelectedBrand}
+                priceRange={priceRange}
+                setPriceRange={setPriceRange}
+                selectedAge={selectedAge}
+                setSelectedAge={setSelectedAge}
+              />
             </div>
 
             {/* Sort By Section */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <h1 className="text-base sm:text-lg md:text-xl font-semibold text-gray-700">
-                SORT BY:
+              <h1 className="text-sm sm:text-base md:text-lg font-semibold text-gray-700">
+                Sort By:
               </h1>
               <select
-                className="p-2 sm:p-2.5 md:p-3 rounded-lg bg-gray-100 border border-gray-200 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="p-1 md:p-2 rounded-lg bg-base-100 border border-gray-200 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-gray-300"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
               >
@@ -309,332 +200,120 @@ const AllProducts = () => {
             </div>
           </div>
 
-          <div className="flex justify-center bg-[#78E3FD] gap-1 sm:gap-3 md:gap-5 py-5 px-1 md:px-3 lg:px-5">
+          <div className="w-11/12 mx-auto flex justify-center gap-1 sm:gap-3 md:gap-5">
             {filtersVisible && (
-              <div className="hidden sm:flex flex-col bg-base-100 w-full sm:w-40 lg:w-[260px] py-6 space-y-4 px-3 md:px-5 lg:shadow-lg rounded-3xl">
-                {/* Search */}
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Search product..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full border border-gray-400 p-2 rounded text-sm sm:text-base placeholder-gray-400"
-                  />
-                </div>
-
-                {/* Brand filter */}
-                <div>
-                  <label className="block text-sm sm:text-base font-medium mb-2">
-                    Brand
-                  </label>
-                  <select
-                    className="w-full border p-2 rounded text-sm sm:text-base"
-                    value={selectedBrand}
-                    onChange={(e) => setSelectedBrand(e.target.value)}
-                  >
-                    <option value="">All Brands</option>
-                    {[...new Set(product.map((prod) => prod.brand))].map(
-                      (brand) => (
-                        <option key={brand} value={brand}>
-                          {brand}
-                        </option>
-                      )
-                    )}
-                  </select>
-                </div>
-
-                {/* Price Range */}
-                <div>
-                  <label className="block text-xs sm:text-sm md:text-base lg:text-lg font-medium mb-2">
-                    Price Range
-                  </label>
-                  <div className="space-y-3">
-                    {/* Price Range Options */}
-                    {[
-                      { label: "0 - 500", value: [0, 500] },
-                      { label: "500 - 2000", value: [500, 2000] },
-                      { label: "2000 - 5000", value: [2000, 5000] },
-                      { label: "5000 - 10000", value: [5000, 10000] },
-                      { label: "10000 - 15000", value: [10000, 15000] },
-                      { label: "15000+", value: [15000, Infinity] },
-                    ].map(({ label, value }) => (
-                      <label
-                        key={label}
-                        className="flex items-center space-x-3 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="priceRange"
-                          value={value}
-                          checked={
-                            priceRange[0] === value[0] &&
-                            priceRange[1] === value[1]
-                          }
-                          onChange={() => setPriceRange(value)}
-                          className="radio radio-sm"
-                        />
-                        <span className="text-xs sm:text-sm lg:text-base">
-                          BDT {label}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Age Group filter */}
-                <div>
-                  <label className="block text-xs sm:text-sm md:text-base lg:text-lg font-medium mb-2">
-                    Age Group
-                  </label>
-                  <div className="space-y-3">
-                    {/* Price Range Options */}
-                    {["1-2", "3-5", "6-11", "12+"].map((age) => (
-                      <label
-                        key={age}
-                        className="flex items-center space-x-3 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="age"
-                          value={age}
-                          checked={selectedAge === age}
-                          onChange={(e) => setSelectedAge(e.target.value)}
-                          className="radio radio-sm"
-                        />
-                        <span className="text-xs sm:text-sm lg:text-base text-gray-700">
-                          {age} years
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Features filter */}
-                <div>
-                  <label className="block text-xs sm:text-sm md:text-base lg:text-lg font-medium mb-2">
-                    Features
-                  </label>
-                  <div className="space-y-3">
-                    {/* Price Range Options */}
-                    {[
-                      "educational",
-                      "interactive",
-                      "battery-operated",
-                      "buildable",
-                    ].map((features) => (
-                      <label
-                        key={features}
-                        className="flex items-center space-x-3 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="features"
-                          value={features}
-                          checked={selectedFeatures === features}
-                          onChange={(e) => setSelectedFeatures(e.target.value)}
-                          className="radio radio-sm"
-                        />
-                        <span className="text-xs sm:text-sm md:text-base text-gray-700">
-                          {features} years
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
+              <div className="hidden sm:flex flex-col bg-base-100 w-full sm:w-1/3 md:w-1/4 py-6 space-y-4 px-3 md:px-5 lg:shadow-lg">
+                <ProductFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  selectedBrand={selectedBrand}
+                  setSelectedBrand={setSelectedBrand}
+                  setSelectedCategory={setSelectedCategory}
+                  selectedCategory={selectedCategory}
+                  priceRange={priceRange}
+                  setPriceRange={setPriceRange}
+                  selectedAge={selectedAge}
+                  setSelectedAge={setSelectedAge}
+                />
               </div>
             )}
-            <div className="flex-1 w-11/12 mx-auto">
-              <div className="grid grid-cols-2 gap-1 sm:gap-3 lg:gap-5 md:grid-cols-3 lg:grid-cols-4">
-                {currentProducts.length ? (
-                  currentProducts.map((item) => (
-                    <div
-                      key={item._id}
-                      className="rounded-3xl bg-white p-4 lg:p-5 shadow-md overflow-hidden transition-transform duration-200 hover:shadow-lg group"
-                      onClick={() => openDrawer(item)}
-                    >
-                      <Link to={`/productDetail/${item._id}`}>
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="h-[200px] sm:h-[220px] bg-base-200 rounded-box object-cover rounded-t-lg mb-4 group-hover:scale-110 transition-transform duration-200"
-                          loading="lazy"
-                        />
-                        <div className="flex flex-col">
-                          <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 truncate">
-                            {item?.name}
-                          </h3>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Rating
-                              initialRating={item.rating}
-                              emptySymbol={
-                                <span className="text-[#F9D50D] text-base">
-                                  ☆
-                                </span>
-                              }
-                              fullSymbol={
-                                <span className="text-[#F9D50D] text-base">
-                                  ★
-                                </span>
-                              }
-                              readonly
-                            />
-                            <p className="text-sm sm:text-base text-[#757575]">
-                              {item?.sell || "444"} sold
+            <div className="flex-1">
+              {filteredProducts.length ? (
+                <div className="pb-5">
+                  <div className="flex items-center space-x-2">
+                    {/* Render selected brand */}
+                    {selectedBrand.length > 0 && (
+                      <div className="flex items-center bg-gray-200 text-sm px-[10px] py-1 rounded-full">
+                        {selectedBrand}
+                        <button
+                          onClick={clearBrand}
+                          className="ml-2 text-red-500 hover:text-red-700"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    )}
+                    {/* Render selected Category */}
+                    {selectedCategory.length > 0 && (
+                      <div className="flex items-center bg-gray-200 text-sm px-[10px] py-1 rounded-full">
+                        {selectedCategory}
+                        <button
+                          onClick={clearCategory}
+                          className="ml-2 text-red-500 hover:text-red-700"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Clear All button */}
+                    {selectedBrand && (
+                      <button
+                        onClick={clearAll}
+                        className="flex items-center bg-gray-200 text-sm px-[10px] py-1 rounded-full"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
+                    {filteredProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="w-full product-cart pb-5 rounded-md sm:rounded-lg md:rounded-xl flex flex-col overflow-hidden group"
+                      >
+                        <Link to={`/productDetail/${product.id}`}>
+                          <img
+                            src={product?.display_image_url}
+                            alt={product?.product_name}
+                            className="bg-base-200 h-[300px] sm:h-[250px] md:h-[280px] lg:h-[320px] rounded-md sm:rounded-lg md:rounded-xl w-full transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="flex flex-col justify-start space-y-1 pt-4 lg:pt-5">
+                            <p className="text-[13px] font-roboto">
+                              {product?.category?.name || " "}
                             </p>
-                          </div>
-                          <p className="text-sm sm:text-base font-bold leading-snug mt-2">
-                            BDT{" "}
-                            <span className="text-xl sm:text-[27px]">
-                              {Math.floor(item.price)}
-                            </span>
-                            {item.price % 1 !== 0 && (
-                              <span>
-                                .{(item.price % 1).toFixed(2).split(".")[1]}
+                            <h2 className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl font-poppins text-[#3E3E3E] sm:min-h-14 md:min-h-14 lg:min-h-16">
+                              {product?.product_name || "Product Name"}
+                            </h2>
+
+                            <p className="text-sm font-roboto min-h-10">
+                              {product.summary}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <Rating
+                                style={{ maxWidth: 100, color: "#dd350b" }}
+                                value={product?.rating}
+                                readOnly
+                              />
+                              <span className="text-sm text-gray-700 dark:text-gray-300">
+                                {product?.rating}
                               </span>
-                            )}
-                            {item.price % 1 === 0 && <span>.0</span>}
+                            </div>
+                          </div>
+                        </Link>
+                        <div className="flex items-center mt-2 gap-2">
+                          <button
+                            onClick={() => handleAddToCart(product)}
+                            className="w-fit md:w-1/2 max-md:px-6 py-2 sm:py-[6px] md:py-2 rounded-md sm:rounded-lg md:rounded-xl lg:rounded-3xl bg-[#317ff3] hover:bg-[#31b2f3] text-sm lg:text-base font-semibold text-white transition-all cursor-pointer"
+                          >
+                            Add to Cart
+                          </button>
+                          <p className="font-bold text-base sm:text-sm md:text-base lg:text-lg text-[#3E3E3E]">
+                            Tk {product?.selling_price}
                           </p>
                         </div>
-                      </Link>
-                    </div>
-                  ))
-                ) : (
-                  <div className="flex justify-center">
-                    <h1 className="text-center text-white font-bold text-3xl">
-                      No products available
-                    </h1>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </div>
-              <div className="flex justify-between mt-5 max-sm:mb-5 px-2 sm:px-5 md:px-7 lg:px-10">
-                <button
-                  onClick={handlePrevPage}
-                  className="bg-[#03b4f6] text-white rounded-md font-semibold px-1 sm:px-2 md:px-3 lg:px-5 py-1 sm:py-3"
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
-                <span>
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={handleNextPage}
-                  className="bg-[#03b4f6] text-white rounded-md font-semibold px-1 sm:px-2 md:px-3 lg:px-5 py-1 sm:py-3"
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </button>
-              </div>
+                </div>
+              ) : (
+                <div className="flex justify-center mt-20">
+                  <h1 className="text-center font-bold text-3xl">
+                    No products available
+                  </h1>
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-
-        {/* Drawer Sidebar */}
-        <div className="drawer-side">
-          <label
-            htmlFor="drawer-toggle"
-            aria-label="close sidebar"
-            className="drawer-overlay"
-          ></label>
-          <div className="menu bg-base-100 text-base-content min-h-full w-80 p-4 mt-20">
-            {selectedProduct && (
-              <>
-                <div className="border-b pb-3 mb-3">
-                  <h2 className="font-bold text-xl mb-1">
-                    {selectedProduct.name}
-                  </h2>
-                  <p className="text-sm text-gray-600">
-                    Category: {selectedProduct.category}
-                  </p>
-                </div>
-
-                <div className="mb-3">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                    <label className="text-sm font-medium">Quantity:</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={quantity}
-                      onChange={handleQuantityChange}
-                      className="w-full sm:w-16 p-1 border border-gray-300 rounded mt-2 sm:mt-0"
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                    <label className="text-sm font-medium">Voucher Code:</label>
-                    <input
-                      type="text"
-                      value={voucherCode}
-                      onChange={(e) => setVoucherCode(e.target.value)}
-                      className="w-full sm:w-32 p-1 border border-gray-300 rounded mt-2 sm:mt-0"
-                    />
-                  </div>
-                  <button
-                    onClick={applyVoucher}
-                    className="mt-2 btn bg-black hover:bg-black text-white w-full"
-                  >
-                    Apply Voucher
-                  </button>
-                  {voucherError && (
-                    <p className="text-red-500 text-sm">{voucherError}</p>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <p className="font-semibold">
-                    Total Price: {getTotalPrice()} BDT
-                  </p>
-                </div>
-
-                <div className="mt-3">
-                  <h3 className="text-lg font-medium mb-2">Payment Method</h3>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex justify-center items-center gap-1">
-                      <button
-                        onClick={() => setPaymentMethod("card")}
-                        className={`btn w-1/4 ${
-                          paymentMethod === "card"
-                            ? "bg-black hover:bg-black text-white"
-                            : "bg-gray-200"
-                        }`}
-                      >
-                        Card
-                      </button>
-                      <button
-                        onClick={() => setPaymentMethod("card")}
-                        className={`btn w-1/4 ${
-                          paymentMethod === "card"
-                            ? "bg-black hover:bg-black text-white"
-                            : "bg-gray-200"
-                        }`}
-                      >
-                        Bkash
-                      </button>
-                      <button
-                        onClick={() => setPaymentMethod("card")}
-                        className={`btn w-1/4 ${
-                          paymentMethod === "card"
-                            ? "bg-black hover:bg-black text-white"
-                            : "bg-gray-200"
-                        }`}
-                      >
-                        Rocket
-                      </button>
-                    </div>
-                    <h1 className="text-center text-xl font-semibold">or</h1>
-                    <button
-                      onClick={() => setPaymentMethod("cash")}
-                      className="btn bg-black hover:bg-black text-white"
-                    >
-                      Cash on Delivery
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
         </div>
       </div>

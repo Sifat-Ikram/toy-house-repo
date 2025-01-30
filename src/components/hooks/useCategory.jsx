@@ -12,8 +12,8 @@ const useCategory = () => {
   } = useQuery({
     queryKey: ["category"],
     queryFn: async () => {
-      const res = await axiosPublic.get("/category");
-      return res.data;
+      const res = await axiosPublic.get("/api/v1/open/categories/get/all?page=0&size=10&request-id=1234");
+      return res.data.categories;
     },
     onError: (err) => {
       console.error("Error fetching category data:", err);
