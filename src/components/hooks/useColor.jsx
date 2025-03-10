@@ -13,7 +13,7 @@ const useColor = () => {
     queryKey: ["color"],
     queryFn: async () => {
       const res = await axiosPublic.get(
-        "/api/v1/admin/colors/get?page-number=0&page-size=14&request-id=1234"
+        "/api/v1/admin/colors/get?page-number=0&page-size=140&request-id=1234"
       );
 
       return res.data.colors;

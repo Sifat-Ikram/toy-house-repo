@@ -10,7 +10,7 @@ const useInventories = ({ id }) => {
     isLoading: inventoryIsLoading,
     error: inventoryError,
   } = useQuery({
-    queryKey: ["inventory"],
+    queryKey: ["inventory", id],
     queryFn: async () => {
       const res = await axiosPublic.get(
         `api/v1/admin/product/inventory/get/inventory-dashboard/${id}?page-number=0&page-size=10&request-id=1234`
@@ -18,6 +18,7 @@ const useInventories = ({ id }) => {
 
       return res.data.inventories;
     },
+    enabled: Boolean(id),
     onError: (err) => {
       console.error("Error fetching color data:", err);
     },

@@ -18,7 +18,9 @@
     "axios": "^1.7.7",
     "chart.js": "^4.4.7",
     "framer-motion": "^11.13.1",
+    "js-cookie": "^3.0.5",
     "localforage": "^1.10.0",
+    "lodash": "^4.17.21",
     "lottie-react": "^2.4.0",
     "match-sorter": "^6.3.4",
     "quill": "^2.0.3",
@@ -31,7 +33,6 @@
     "react-inner-image-zoom": "^3.0.2",
     "react-quill": "^2.0.0",
     "react-rating": "^2.0.5",
-    "react-rating-stars-component": "^2.2.0",
     "react-router-dom": "^6.27.0",
     "react-slick": "^0.30.3",
     "react-stars": "^2.2.5",
@@ -42,7 +43,7 @@
     "slick-carousel": "^1.8.1",
     "sort-by": "^0.0.2",
     "sweetalert2": "^11.15.3",
-    "swiper": "^11.1.15"
+    "swiper": "^11.2.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",

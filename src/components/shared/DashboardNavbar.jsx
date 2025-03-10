@@ -35,7 +35,7 @@ const DashboardNavbar = () => {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [productsRef]);
+  }, []);
 
   const mobileUserNavLinks = (
     <>
@@ -128,6 +128,18 @@ const DashboardNavbar = () => {
           Users
         </NavLink>
       </li>
+      <li className="py-[6px] justify-start px-8">
+        <NavLink
+          to="/dashboard/manageOrders"
+          style={({ isActive }) => ({
+            color: isActive ? "#f52e2e" : "#333",
+            fontWeight: isActive ? "600" : "500",
+          })}
+          className="text-lg font-medium"
+        >
+          Orders
+        </NavLink>
+      </li>
       <li className="py-[6px] justify-start px-8" ref={productsRef}>
         <div
           onClick={() => toggleProducts()}
@@ -138,7 +150,7 @@ const DashboardNavbar = () => {
         {isProductsOpen && (
           <ul className="space-y-1 mt-2 ml-8">
             <li
-              onClick={(e) => e.stopPropagation()} // Prevent parent div click event
+              onClick={(e) => e.stopPropagation()}
             >
               <NavLink
                 to="/dashboard/manageProducts"
@@ -162,7 +174,7 @@ const DashboardNavbar = () => {
                   fontWeight: isActive ? "600" : "500",
                 })}
               >
-                Add Products
+                Add Product
               </NavLink>
             </li>
           </ul>
@@ -170,33 +182,57 @@ const DashboardNavbar = () => {
       </li>
       <li className="py-[6px] justify-start px-8">
         <NavLink
-          to="/dashboard/manageOrders"
+          to="/dashboard/addCategory"
           style={({ isActive }) => ({
             color: isActive ? "#f52e2e" : "#333",
             fontWeight: isActive ? "600" : "500",
           })}
           className="text-lg font-medium"
         >
-          Orders
+          Categories
         </NavLink>
       </li>
       <li className="py-[6px] justify-start px-8">
         <NavLink
-          to="/dashboard/manageOffers"
+          to="/dashboard/addBrand"
           style={({ isActive }) => ({
             color: isActive ? "#f52e2e" : "#333",
             fontWeight: isActive ? "600" : "500",
           })}
           className="text-lg font-medium"
         >
-          Offers
+        Brands
+        </NavLink>
+      </li>
+      <li className="py-[6px] justify-start px-8">
+        <NavLink
+          to="/dashboard/addColor"
+          style={({ isActive }) => ({
+            color: isActive ? "#f52e2e" : "#333",
+            fontWeight: isActive ? "600" : "500",
+          })}
+          className="text-lg font-medium"
+        >
+         Colors
+        </NavLink>
+      </li>
+      <li className="py-[6px] justify-start px-8">
+        <NavLink
+          to="/dashboard/addMaterial"
+          style={({ isActive }) => ({
+            color: isActive ? "#f52e2e" : "#333",
+            fontWeight: isActive ? "600" : "500",
+          })}
+          className="text-lg font-medium"
+        >
+          Materials
         </NavLink>
       </li>
     </>
   );
 
   return (
-    <div className="w-full flex flex-col shadow-lg sm:min-h-screen sm:bg-base-200 sticky top-0">
+    <div className="w-full flex flex-col sm:min-h-screen shadow-lg sm:bg-base-200 sticky top-0">
       {/* Logo Section */}
       <div className="flex justify-evenly sm:border-b-2 border-gray-300 bg-base-200">
         <div className="relative sm:hidden">
@@ -216,225 +252,220 @@ const DashboardNavbar = () => {
       </div>
 
       {/* Navigation Items */}
-      <div className="max-sm:hidden flex flex-col justify-between px-6 gap-12">
-        <div className="flex flex-col">
-          <h1 className="text-xl font-semibold text-gray-800 my-5 uppercase">
-            Menu
-          </h1>
-          <div className="flex flex-col justify-between h-full items-center">
-            <div className="h-11/12">
-              {admin ? (
-                <ul className="flex flex-col space-y-5 z-50">
-                  <li className="flex items-center gap-4">
-                    <FaHome className="text-2xl" />
-                    <NavLink
-                      to="/dashboard/adminDashboard"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "#333",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      Admin Dashboard
-                    </NavLink>
-                  </li>
-                  <li className="flex items-center gap-4">
-                    <FaUsers className="text-2xl" />
-                    <NavLink
-                      to="/dashboard/manageUsers"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "#333",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      Users
-                    </NavLink>
-                  </li>
-                  <li className="flex items-center gap-4">
-                    <FaBoxOpen className="text-2xl" />
-                    <NavLink
-                      to="/dashboard/manageOrders"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "#333",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      Orders
-                    </NavLink>
-                  </li>
-                  <li className="flex flex-col" ref={productsRef}>
-                    <div
-                      onClick={toggleProducts}
-                      className="flex items-center gap-4 rounded-lg cursor-pointer"
-                      aria-expanded={isProductsOpen}
-                      aria-controls="productMenu"
-                      role="button"
-                    >
-                      <FaBox className="text-xl" />
-                      <span className="text-base font-medium">Products</span>
-                    </div>
-                    {isProductsOpen && (
-                      <ul className="space-y-1 mt-2 ml-8">
-                        <li className="flex items-center gap-4 rounded-lg">
-                          <FaBoxOpen className="text-xl text-pink-500" />
-                          <NavLink
-                            to="/dashboard/manageProducts"
-                            style={({ isActive }) => ({
-                              color: isActive ? "#f52e2e" : "#333",
-                              fontWeight: isActive ? "600" : "500",
-                            })}
-                            className="text-base font-medium hover:underline"
-                          >
-                            Product List
-                          </NavLink>
-                        </li>
-                        <li className="flex items-center gap-4 rounded-lg">
-                          <FaBoxOpen className="text-xl text-pink-500" />
-                          <NavLink
-                            to="/dashboard/addProduct"
-                            style={({ isActive }) => ({
-                              color: isActive ? "#f52e2e" : "#333",
-                              fontWeight: isActive ? "600" : "500",
-                            })}
-                            className="text-base font-medium hover:underline"
-                          >
-                            Add Products
-                          </NavLink>
-                        </li>
-                      </ul>
-                    )}
-                  </li>
-                  <li className="flex items-center gap-4">
-                    <BiSolidCategoryAlt className="text-2xl" />
-                    <NavLink
-                      to="/dashboard/addCategory"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      Add Category
-                    </NavLink>
-                  </li>
-                  <li className="flex items-center gap-4">
-                    <TbBrandCtemplar className="text-2xl" />
-                    <NavLink
-                      to="/dashboard/addBrand"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "#333",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      Add Brand
-                    </NavLink>
-                  </li>
-                  <li className="flex items-center gap-4">
-                    <IoIosColorPalette className="text-2xl" />
-                    <NavLink
-                      to="/dashboard/addColor"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "#333",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      Add Color
-                    </NavLink>
-                  </li>
-                  <li className="flex items-center gap-4">
-                    <FaTools className="text-2xl" />
-                    <NavLink
-                      to="/dashboard/addMaterial"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "#333",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      Add Materials
-                    </NavLink>
-                  </li>
-                </ul>
-              ) : (
-                <ul className="flex flex-col space-y-4 z-50">
-                  <li className="flex items-center gap-4">
-                    <FaUserAstronaut className="text-2xl text-red-500" />
-                    <NavLink
-                      to="/dashboard/profile"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "#333",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      My Account
-                    </NavLink>
-                  </li>
-                  <li className="flex items-center gap-4">
-                    <IoMdCube className="text-2xl text-blue-500" />
-                    <NavLink
-                      to="/dashboard/orders"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "#333",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      My Orders
-                    </NavLink>
-                  </li>
-                  <li className="flex items-center gap-4">
-                    <AiFillStar className="text-2xl text-yellow-500" />
-                    <NavLink
-                      to="/dashboard/userReviews"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "#333",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      My Reviews
-                    </NavLink>
-                  </li>
-                  <li className="flex items-center gap-4">
-                    <IoMdHeart className="text-2xl text-pink-500" />
-                    <NavLink
-                      to="/dashboard/userWishlist"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "#333",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      My Wishlist
-                    </NavLink>
-                  </li>
-                  <li className="flex items-center gap-4">
-                    <FiRotateCw className="text-2xl text-green-500" />
-                    <NavLink
-                      to="/dashboard/userReturned"
-                      style={({ isActive }) => ({
-                        color: isActive ? "#f52e2e" : "#333",
-                        fontWeight: isActive ? "600" : "500",
-                      })}
-                      className="text-lg font-medium"
-                    >
-                      Returns & Cancellations
-                    </NavLink>
-                  </li>
-                </ul>
-              )}
-            </div>
-            <div className="flex-1 flex items-center bottom-0 gap-4 text-gray-800 w-full pb-4">
-              <BiLogOut className="text-2xl" />
-              <span className="text-lg font-medium text-gray-800 hover:text-[#f52e2e] cursor-pointer">
-                Logout
-              </span>
-            </div>
+      <div className="max-sm:hidden relative flex flex-col flex-1 justify-between px-6 gap-12">
+        <div className="flex flex-col justify-between h-full items-center">
+          <div className="mt-10">
+            {admin ? (
+              <ul className="flex flex-col space-y-5 z-50">
+                <li className="flex items-center gap-4">
+                  <FaHome className="text-2xl" />
+                  <NavLink
+                    to="/dashboard/adminDashboard"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "#333",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium flex-nowrap"
+                  >
+                    Admin Dashboard
+                  </NavLink>
+                </li>
+                <li className="flex items-center gap-4">
+                  <FaUsers className="text-2xl" />
+                  <NavLink
+                    to="/dashboard/manageUsers"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "#333",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium"
+                  >
+                    Users
+                  </NavLink>
+                </li>
+                <li className="flex items-center gap-4">
+                  <FaBoxOpen className="text-2xl" />
+                  <NavLink
+                    to="/dashboard/manageOrders"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "#333",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium"
+                  >
+                    Orders
+                  </NavLink>
+                </li>
+                <li className="flex flex-col" ref={productsRef}>
+                  <div
+                    onClick={toggleProducts}
+                    className="flex items-center gap-4 rounded-lg cursor-pointer"
+                    aria-expanded={isProductsOpen}
+                    aria-controls="productMenu"
+                    role="button"
+                  >
+                    <FaBox className="text-xl" />
+                    <span className="text-lg font-medium">Products</span>
+                  </div>
+                  {isProductsOpen && (
+                    <ul className="space-y-1 mt-2 ml-8" onClick={(e) => e.stopPropagation()}>
+                      <li className="flex items-center gap-4 rounded-lg">
+                        <FaBoxOpen className="text-xl text-pink-500" />
+                        <NavLink
+                          to="/dashboard/manageProducts"
+                          style={({ isActive }) => ({
+                            color: isActive ? "#f52e2e" : "#333",
+                            fontWeight: isActive ? "600" : "500",
+                          })}
+                          className="text-base font-medium hover:underline"
+                        >
+                          Product List
+                        </NavLink>
+                      </li>
+                      <li className="flex items-center gap-4 rounded-lg">
+                        <FaBoxOpen className="text-xl text-pink-500" />
+                        <NavLink
+                          to="/dashboard/addProduct"
+                          style={({ isActive }) => ({
+                            color: isActive ? "#f52e2e" : "#333",
+                            fontWeight: isActive ? "600" : "500",
+                          })}
+                          className="text-base font-medium hover:underline"
+                        >
+                          Add Product
+                        </NavLink>
+                      </li>
+                    </ul>
+                  )}
+                </li>
+                <li className="flex items-center gap-4">
+                  <BiSolidCategoryAlt className="text-2xl" />
+                  <NavLink
+                    to="/dashboard/addCategory"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium"
+                  >
+                    Categories
+                  </NavLink>
+                </li>
+                <li className="flex items-center gap-4">
+                  <TbBrandCtemplar className="text-2xl" />
+                  <NavLink
+                    to="/dashboard/addBrand"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "#333",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium"
+                  >
+                    Brands
+                  </NavLink>
+                </li>
+                <li className="flex items-center gap-4">
+                  <IoIosColorPalette className="text-2xl" />
+                  <NavLink
+                    to="/dashboard/addColor"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "#333",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium"
+                  >
+                    Colors
+                  </NavLink>
+                </li>
+                <li className="flex items-center gap-4">
+                  <FaTools className="text-2xl" />
+                  <NavLink
+                    to="/dashboard/addMaterial"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "#333",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium"
+                  >
+                    Materials
+                  </NavLink>
+                </li>
+              </ul>
+            ) : (
+              <ul className="flex flex-col space-y-4 z-50">
+                <li className="flex items-center gap-4">
+                  <FaUserAstronaut className="text-2xl text-red-500" />
+                  <NavLink
+                    to="/dashboard/profile"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "#333",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium"
+                  >
+                    My Account
+                  </NavLink>
+                </li>
+                <li className="flex items-center gap-4">
+                  <IoMdCube className="text-2xl text-blue-500" />
+                  <NavLink
+                    to="/dashboard/orders"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "#333",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium"
+                  >
+                    My Orders
+                  </NavLink>
+                </li>
+                <li className="flex items-center gap-4">
+                  <AiFillStar className="text-2xl text-yellow-500" />
+                  <NavLink
+                    to="/dashboard/userReviews"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "#333",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium"
+                  >
+                    My Reviews
+                  </NavLink>
+                </li>
+                <li className="flex items-center gap-4">
+                  <IoMdHeart className="text-2xl text-pink-500" />
+                  <NavLink
+                    to="/dashboard/userWishlist"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "#333",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium"
+                  >
+                    My Wishlist
+                  </NavLink>
+                </li>
+                <li className="flex items-center gap-4">
+                  <FiRotateCw className="text-2xl text-green-500" />
+                  <NavLink
+                    to="/dashboard/userReturned"
+                    style={({ isActive }) => ({
+                      color: isActive ? "#f52e2e" : "#333",
+                      fontWeight: isActive ? "600" : "500",
+                    })}
+                    className="text-lg font-medium"
+                  >
+                    Returns & Cancellations
+                  </NavLink>
+                </li>
+              </ul>
+            )}
+          </div>
+          <div className="absolute bottom-0 right-1/2 flex items-center gap-4 text-gray-800 w-full pb-0">
+            <BiLogOut className="text-2xl" />
+            <span className="text-lg font-medium mb-0 text-gray-800 hover:text-[#f52e2e] cursor-pointer">
+              Logout
+            </span>
           </div>
         </div>
       </div>

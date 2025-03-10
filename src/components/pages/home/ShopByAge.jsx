@@ -51,11 +51,11 @@ const ShopByAge = () => {
   );
 
   return (
-    <div className="w-5/6 mx-auto pt-7 md:pt-16">
+    <div className="w-11/12 mx-auto">
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center font-poppins">
         Shop by Age
       </h1>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5 mt-10">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 lg:gap-5 mt-10">
         {filteredShopItems.map((item) => (
           <Link
             to={`/ageCategory/${item._id}?minAge=${item.minAge}&maxAge=${item.maxAge}`}
@@ -70,7 +70,7 @@ const ShopByAge = () => {
             <h1 className="text-sm sm:text-lg lg:text-2xl font-normal font-poppins text-[#3E3E3E]">
               {item.title}
             </h1>
-            <p className="text-xl">Age {item.age}</p>
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl">Age {item.age}</p>
           </Link>
         ))}
       </div>

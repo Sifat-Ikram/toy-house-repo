@@ -2,187 +2,108 @@ import { useRef, useState } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import image from "../../../assets/wheels/testimonial.png";
-import person from "../../../assets/wheels/man-7799486_1280.webp";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import useTopReviews from "../../hooks/useTopReviews";
 
 const Testimonials = () => {
   const sliderRef = useRef(null);
-  const prevRef = useRef(null);
-  const nextRef = useRef(null);
-
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  const reviews = [
-    {
-      id: "1",
-      image: person,
-      username: "Kawsar Ovi",
-      review:
-        "This toy is fantastic! My kid loves it and plays with it every day.",
-      background: "#f5f5f5",
-      productName: "Super Toy Robot",
-    },
-    {
-      id: "2",
-      image: person,
-      username: "Robin Ahmed",
-      review:
-        "Great quality and very educational. My child learned a lot from this toy.",
-      background: "#e0e0e0",
-      productName: "Learning Blocks",
-    },
-    {
-      id: "3",
-      image: person,
-      username: "Kawsar Ovi",
-      review:
-        "Good fun but a bit too complex for younger kids. Still, it's very engaging.",
-      background: "#d1e7dd",
-      productName: "Puzzle Adventure",
-    },
-    {
-      id: "4",
-      image: person,
-      username: "Robin Ahmed",
-      review: "This toy is so colorful and fun. My daughter adores it!",
-      background: "#f8d7da",
-      productName: "Colorful Dollhouse",
-    },
-    {
-      id: "5",
-      image: person,
-      username: "Kawsar Ovi",
-      review:
-        "Perfect for my son's birthday. He couldn't stop smiling while playing with it!",
-      background: "#d1f2d6",
-      productName: "Birthday Party Set",
-    },
-  ];
+  const [topReviews] = useTopReviews();
 
   const settings = {
-    slidesToShow: 2,
+    slidesToShow: 3,
     slidesToScroll: 1,
     arrows: false,
     dots: false,
+    infinite: false,
+    afterChange: (index) => setCurrentIndex(index),
     responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 1,
-        },
-      },
-      {
-        breakpoint: 760,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        },
-      },
-      {
-        breakpoint: 515,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-        },
-      },
+      { breakpoint: 1700, settings: { slidesToShow: 2 } }, // Mobile
+      { breakpoint: 768, settings: { slidesToShow: 3 } }, // Mobile
+      { breakpoint: 510, settings: { slidesToShow: 2.5 } }, // Mobile
+      { breakpoint: 440, settings: { slidesToShow: 2 } }, // Mobile
     ],
-    afterChange: (index) => {
-      setCurrentIndex(index);
-
-      const slider = sliderRef.current;
-      if (slider) {
-        const { slideCount } = slider.innerSlider.state;
-        const lastSlide = slideCount - settings.slidesToShow;
-
-        prevRef.current.style.display = index === 0 ? "none" : "block";
-        nextRef.current.style.display = index >= lastSlide ? "none" : "block";
-      }
-    },
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center z-20">
-      <div className="z-30 w-full pt-16 sm:py-[70px] flex flex-col lg:flex-row items-center space-y-4 sm:space-y-0">
-        <div className="w-full lg:w-1/2">
-          <h1 className="text-xl md:text-2xl text-center font-bold text-white lg:text-4xl font-poppins mb-10 lg:mb-0">
+    <div className="relative z-30 w-full flex flex-col lg:flex-row items-center bg-[#31b2f3] h-full max-lg:space-y-5 lg:space-x-5 justify-center bg-no-repeat pt-14 px-6 overflow-hidden">
+      {/* Text Section - 40% Width */}
+      <div className="w-full lg:w-2/5 text-center lg:text-left lg:mb-0">
+        <div className="w-11/12 mx-auto">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white font-poppins">
             Listen to Our Customers
           </h1>
-        </div>
-        <div className="w-4/5 sm:w-3/5 md:w-5/6 max-lg:mx-auto lg:w-1/2">
-          <div className="slider-container">
-            {reviews.length ? (
-              <>
-                <Slider ref={sliderRef} {...settings}>
-                  {reviews.slice(0, 8).map((review) => (
-                    <div key={review.id}>
-                      <div
-                        className="rounded-2xl w-11/12 sm:w-[180px] md:w-[200px] lg:w-[300px] p-4 bg-white shadow flex flex-col space-y-3"
-                        style={{ backgroundColor: review.background }}
-                      >
-                        <div className="flex items-center gap-3 sm:gap-1 md:gap-[6px] lg:gap-3">
-                          <img
-                            src={
-                              review.image || "https://via.placeholder.com/150"
-                            }
-                            className="h-5 w-5 md:h-8 md:w-8 lg:h-12 lg:w-12 rounded-full object-cover"
-                            alt={review.username || "user"}
-                          />
-                          <h1 className="text-xs sm:text-sm md:text-lg lg::text-xl font-poppins font-coiny">
-                            {review.username || "Anonymous"}
-                          </h1>
-                        </div>
-                        <div className="flex flex-col justify-between h-[150px]">
-                          <p className="text-[10px] sm:text-xs lg:text-sm font-roboto">
-                            {review.review || "No feedback provided."}
-                          </p>
-                          <h1 className="text-xs sm:text-sm md:text-base mt-auto">
-                            <span className="font-bold">Product:</span>{" "}
-                            {review.productName || "N/A"}
-                          </h1>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </Slider>
-                <button
-                  ref={prevRef}
-                  onClick={() => sliderRef.current.slickPrev()}
-                  className={`custom-prev ${
-                    currentIndex === 0 ? "hidden" : "block"
-                  } absolute max-md:mt-8 md:-mt-3 top-1/2 left-0 sm:left-20 md:left-6 lg:left-[635px]
-                   z-20 p-2 lg:p-4 rounded-full bg-white shadow-md transition`}
-                  aria-label="Previous Slide"
-                >
-                  <IoIosArrowBack className="text-xl" />
-                </button>
-                <button
-                  ref={nextRef}
-                  onClick={() => sliderRef.current.slickNext()}
-                  className={`custom-next ${
-                    currentIndex >=
-                    sliderRef.current?.innerSlider?.state.slideCount -
-                      settings.slidesToShow
-                      ? "hidden"
-                      : "block"
-                  } absolute max-md:mt-8 md:-mt-3 top-1/2 right-5 sm:right-20 md:right-14 lg:right-2 z-20 p-2 lg:p-4 rounded-full bg-white shadow-md transition`}
-                  aria-label="Next Slide"
-                >
-                  <IoIosArrowForward className="text-xl" />
-                </button>
-              </>
-            ) : (
-              <p className="text-center">No reviews available</p>
-            )}
-          </div>
+          <p className="mt-4 text-white text-sm md:text-base">
+            Our customers love our toys! Read their reviews to see why they keep
+            coming back.
+          </p>
         </div>
       </div>
-      <img
-        src={image}
-        className="absolute top-0 h-[480px] lg:h-[450px] w-full"
-        alt="Testimonials Background"
-      />
+
+      {/* Slider Section - 60% Width */}
+      <div className="w-full lg:w-3/5 relative pb-14">
+        {topReviews.length > 0 ? (
+          <>
+            <Slider ref={sliderRef} {...settings}>
+              {topReviews.map((review) => (
+                <div key={review.id} className="">
+                  <div className="bg-white dark:bg-white rounded-2xl p-3 sm:p-3 md:p-4 shadow-lg flex flex-col justify-between h-[140px] sm:h-[180px] w-[150px] sm:w-[180px] md:w-[300px] md:h-[200px] lg:w-[300px] lg:h-[250px] space-y-2 md:space-y-4">
+                    <div className="dark:text-black">
+                      <h2 className="text-xs sm:text-sm md:text-lg lg::text-xl font-poppins">
+                        {review.username || "Anonymous"}
+                      </h2>
+                      <div className="flex space-x-1 -mt-1 mb-3">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            className={`text-lg ${
+                              review.rating >= star
+                                ? "text-yellow-500"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-[10px] sm:text-xs lg:text-sm font-roboto">
+                        {review.comment || "No feedback provided."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </Slider>
+
+            {/* Navigation Buttons */}
+            <button
+              onClick={() => sliderRef.current.slickPrev()}
+              className={`absolute top-1/2 -translate-y-1/2 -mt-9 -left-3 sm:-left-5 md:-left-4 p-1 sm:p-2 md:p-3 bg-white shadow-md rounded-full transition ${
+                currentIndex === 0 ? "hidden" : "block"
+              }`}
+              aria-label="Previous Slide"
+            >
+              <IoIosArrowBack className="text-2xl" />
+            </button>
+
+            <button
+              onClick={() => sliderRef.current.slickNext()}
+              className={`absolute top-1/2 -translate-y-1/2 -mt-9 right-2 md:right-7 lg:right-6 p-1 sm:p-2 md:p-3 bg-white shadow-md rounded-full transition ${
+                currentIndex >= topReviews.length - settings.slidesToShow
+                  ? "hidden"
+                  : "block"
+              }`}
+              aria-label="Next Slide"
+            >
+              <IoIosArrowForward className="text-2xl" />
+            </button>
+          </>
+        ) : (
+          <h1 className="text-2xl md:text-2xl lg:text-3xl text-center mt-10 font-medium text-white font-poppins dark:text-white">
+            There is no reviews yet!
+          </h1>
+        )}
+      </div>
     </div>
   );
 };

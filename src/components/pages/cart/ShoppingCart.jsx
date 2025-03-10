@@ -1,174 +1,423 @@
-import { useEffect, useState } from "react";
-import { MdDelete } from "react-icons/md";
+import { useContext, useMemo } from "react";
+import { useState, useEffect } from "react";
+import { MdCancel } from "react-icons/md";
+import { FiMinus } from "react-icons/fi";
+import { RxCross2, RxPlus } from "react-icons/rx";
+import { useNavigate } from "react-router-dom";
+import useCart from "../../hooks/useCart";
+import { AuthContext } from "../../../provider/AuthProvider";
+import useAxiosPublic from "../../hooks/useAxiosPublic";
 
-const ShoppingCart = () => {
-  const [voucherCode, setVoucherCode] = useState("");
-  const [discountedAmount, setDiscountedAmount] = useState(0);
-  const [amounts, setAmounts] = useState({});
-  const [cart, setCart] = useState([]);
+const ShoppingCart = ({ handleShowDrawer }) => {
+  const { user } = useContext(AuthContext);
+  const [existingCart, setExistingCart] = useState([]);
+  const [isCheckoutLoading, setCheckoutLoading] = useState(false);
+  const { cart, cartRefetch } = useCart();
+  const axiosPublic = useAxiosPublic();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(savedCart);
+    // Safely parse the stored cart on mount
+    const storedCart = sessionStorage.getItem("cart");
+    if (storedCart) {
+      try {
+        setExistingCart(JSON.parse(storedCart) || []);
+      } catch (e) {
+        console.error("Failed to parse cart from sessionStorage", e);
+      }
+    }
+
+    // Sync cart with sessionStorage on storage change or focus
+    const syncCart = () => {
+      const storedCart = sessionStorage.getItem("cart");
+      if (storedCart) {
+        try {
+          setExistingCart(JSON.parse(storedCart) || []);
+        } catch (e) {
+          console.error("Failed to parse cart during sync", e);
+        }
+      }
+    };
+
+    window.addEventListener("storage", syncCart);
+    window.addEventListener("focus", syncCart);
+
+    return () => {
+      window.removeEventListener("storage", syncCart);
+      window.removeEventListener("focus", syncCart);
+    };
   }, []);
 
   useEffect(() => {
-    const initialAmounts = {};
-    cart.forEach((item) => {
-      initialAmounts[item.name] = 1;
-    });
-    setAmounts(initialAmounts);
-    setDiscountedAmount(calculateTotalCost());
-  }, [cart]);
-
-  const incrementQuantity = (itemId) => {
-    setAmounts((prevAmounts) => ({
-      ...prevAmounts,
-      [itemId]: (prevAmounts[itemId] || 0) + 1,
-    }));
-  };
-
-  const decrementQuantity = (itemId) => {
-    if (amounts[itemId] > 1) {
-      setAmounts((prevAmounts) => ({
-        ...prevAmounts,
-        [itemId]: (prevAmounts[itemId] || 0) - 1,
-      }));
-    }
-  };
-
-  const calculateTotalCost = () => {
-    let total = 0;
-    cart.forEach((item) => {
-      total += item.price * (amounts[item.name] || 0);
-    });
-    return total;
-  };
-
-  const handleDiscountVoucher = (voucherCode) => {
-    let newDiscountedAmount = calculateTotalCost();
-    if (voucherCode === "DISCOUNT100") {
-      newDiscountedAmount -= 100;
+    if (existingCart.length > 0) {
+      sessionStorage.setItem("cart", JSON.stringify(existingCart)); // Save to sessionStorage
     } else {
-      alert("Invalid voucher code!");
+      sessionStorage.removeItem("cart"); // Remove cart if empty
     }
-    setDiscountedAmount(newDiscountedAmount);
+  }, [existingCart]);
+
+  const handleRemove = (sku) => {
+    const updatedCart = existingCart
+      .map((cartEntry) => ({
+        ...cartEntry,
+        items: cartEntry.items.filter((item) => item.sku !== sku),
+      }))
+      .filter((cartEntry) => cartEntry.items.length > 0);
+
+    setExistingCart(updatedCart);
   };
 
-  const handleDelete = (item) => {
-    const updatedCart = cart.filter((cartItem) => cartItem._id !== item._id);
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+  const handleDeleteCart = async (sku) => {
+    const updatedItems = cart.items.filter((item) => item.sku !== sku);
+
+    // Create the formatted data to send to the backend
+    const formattedData = {
+      items: [
+        ...updatedItems.map((item) => ({
+          product_inventory_id: item.inventory_id,
+          quantity: item.quantity,
+        })),
+      ],
+    };
+    try {
+      const response = await axiosPublic.post(
+        "/api/v1/open/calculate-bill?request-id=1234",
+        formattedData,
+        {
+          headers: {
+            Authorization: `Bearer ${user}`, // Adding the Bearer token to the headers
+          },
+        }
+      );
+      if (response) {
+        cartRefetch();
+      }
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+    }
   };
 
-  console.log(cart);
-  
-  
+  const handleUserIncrease = async (sku) => {
+    // Update the items in the cart: Increase quantity for matching SKU
+    const updatedItems = cart.items.map((item) => {
+      if (item.sku === sku) {
+        return { ...item, quantity: item.quantity + 1 }; // Increase quantity by 1 if SKU matches
+      }
+      return item; // Keep the other items the same
+    });
+
+    // Create the formatted data to send to the backend
+    const formattedData = {
+      items: [
+        ...updatedItems.map((item) => ({
+          product_inventory_id: item.inventory_id,
+          quantity: item.quantity,
+        })),
+      ],
+    };
+
+    try {
+      const response = await axiosPublic.post(
+        "/api/v1/open/calculate-bill?request-id=1234",
+        formattedData,
+        {
+          headers: {
+            Authorization: `Bearer ${user}`, // Adding the Bearer token to the headers
+          },
+        }
+      );
+      if (response) {
+        cartRefetch();
+      }
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+    }
+  };
+
+  const handleUserDecrease = async (sku) => {
+    // Update the items in the cart: Decrease quantity for matching SKU but not less than 1
+    const updatedItems = cart.items.map((item) => {
+      if (item.sku === sku) {
+        return { ...item, quantity: item.quantity > 1 ? item.quantity - 1 : 1 }; // Decrease quantity by 1 if > 1
+      }
+      return item; // Keep the other items the same
+    });
+
+    // Create the formatted data to send to the backend
+    const formattedData = {
+      items: [
+        ...updatedItems.map((item) => ({
+          product_inventory_id: item.inventory_id,
+          quantity: item.quantity,
+        })),
+      ],
+    };
+
+    try {
+      const response = await axiosPublic.post(
+        "/api/v1/open/calculate-bill?request-id=1234",
+        formattedData,
+        {
+          headers: {
+            Authorization: `Bearer ${user}`, // Adding the Bearer token to the headers
+          },
+        }
+      );
+      if (response) {
+        cartRefetch();
+      }
+    } catch (error) {
+      console.error("Error updating cart:", error);
+    }
+  };
+
+  const handleIncrease = (sku) => {
+    const updatedCart = existingCart.map((cartEntry) => ({
+      ...cartEntry,
+      items: cartEntry.items.map((item) =>
+        item.sku === sku ? { ...item, quantity: item.quantity + 1 } : item
+      ),
+    }));
+
+    setExistingCart(updatedCart);
+  };
+
+  const handleDecrease = (sku, quantity) => {
+    if (quantity > 1) {
+      const updatedCart = existingCart.map((cartEntry) => ({
+        ...cartEntry,
+        items: cartEntry.items.map((item) =>
+          item.sku === sku ? { ...item, quantity: item.quantity - 1 } : item
+        ),
+      }));
+
+      setExistingCart(updatedCart);
+    }
+  };
+
+  const totalPrice = useMemo(() => {
+    if (user) {
+      return cart ? cart.sub_total : 0;
+    } else {
+      return existingCart.reduce((acc, cartEntry) => {
+        return (
+          acc +
+          (cartEntry.items?.reduce(
+            (subTotal, item) =>
+              subTotal +
+              (parseFloat(item.selling_price) || 0) * (item.quantity || 1),
+            0
+          ) || 0)
+        );
+      }, 0);
+    }
+  }, [user, cart, existingCart]);
+
+  const handleCheckout = () => {
+    if (user) {
+      setCheckoutLoading(true);
+      handleShowDrawer();
+      // Simulate checkout process
+      setTimeout(() => {
+        navigate("/checkout");
+      }, 1000);
+    } else {
+      if (!existingCart || existingCart.length === 0) {
+        alert("Your cart is empty.");
+        return;
+      }
+      const finalCart = {
+        items: existingCart.flatMap((cartEntry) =>
+          cartEntry.items.map(
+            ({
+              base_price,
+              color_name,
+              product_name,
+              quantity,
+              selling_price,
+              sku,
+            }) => ({
+              base_price,
+              color_name,
+              product_name,
+              quantity,
+              selling_price,
+              sku,
+            })
+          )
+        ),
+        request_id: "1234",
+        sub_total: totalPrice,
+      };
+
+      sessionStorage.setItem("checkout", JSON.stringify(finalCart));
+      localStorage.setItem("checkout", JSON.stringify(finalCart));
+
+      setCheckoutLoading(true);
+      handleShowDrawer();
+      // Simulate checkout process
+      setTimeout(() => {
+        navigate("/checkout", { state: { cart: finalCart } });
+      }, 1000);
+    }
+  };
 
   return (
-    <div className="w-11/12 mx-auto my-10">
-      <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-5 text-left">
-        Your Ordered Items
-      </h1>
-      <div className="flex flex-col sm:flex-row gap-8">
-        {/* Cart Items */}
-        <div className="lg:w-2/3 flex flex-col border-t-2">
-          {cart?.length > 0 ? (
-            cart.map((item) => (
-              <div
-                key={item.id}
-                className="p-4 border-b-2 text-sm md:text-base lg:text-lg"
-              >
-                <div className="flex flex-col">
-                  <p className="font-bold">Name: {item.name}</p>
-                  <p className="font-semibold">Price: {item.price} Tk</p>
-                </div>
-                <div className="flex gap-4 items-center mt-2">
-                  <h1 className="text-sm md:text-base font-semibold">
-                    Quantity:
-                  </h1>
-                  <div className="flex items-center">
-                    <button
-                      onClick={() => decrementQuantity(item.name)}
-                      className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-2 rounded-l"
-                      disabled={amounts[item.name] <= 1}
-                    >
-                      -
-                    </button>
-                    <h1 className="mx-3 md:mx-5">{amounts[item.name]}</h1>
-                    <button
-                      onClick={() => incrementQuantity(item.name)}
-                      className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-2 rounded-r"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                <p className="font-bold mt-2">
-                  Total: {item.price * (amounts[item.name] || 0)} Tk
-                </p>
-                <div className="flex justify-end mt-2">
-                  <button
-                    onClick={() => handleDelete(item)}
-                    className="bg-red-700 hover:bg-red-900 rounded-md flex items-center gap-2 px-2 py-1 text-sm md:text-base font-semibold text-white"
-                  >
-                    <MdDelete className="text-xl md:text-2xl" />
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-center text-gray-500 py-5">
-              Your cart is empty.
-            </p>
-          )}
+    <div className="text-[#2F3132] dark:text-black dark:bg-white shadow w-full pb-5 bg-base-200 flex flex-col justify-between min-h-screen relative">
+      <div>
+        <div className="bg-[#FFFFFF] w-full p-3 flex justify-between items-center">
+          <h1 className="text-xl font-poppins font-semibold">Cart</h1>
+          <button
+            className="bg-red-500 dark:bg-red-500 dark:text-white text-white w-7 h-7 flex items-center justify-center text-base rounded-full"
+            onClick={handleShowDrawer}
+          >
+            <RxCross2 />
+          </button>
         </div>
 
-        {/* Order Summary */}
-        <div className="lg:w-1/3 bg-gray-200 p-6 md:p-8 rounded-lg shadow-md">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-6">
-            Order Summary
-          </h2>
-          <p className="text-sm md:text-base lg:text-lg mb-4">
-            Total Cost: ${calculateTotalCost()}
-          </p>
-          <div className="mb-6">
-            <label className="block mb-2 text-sm md:text-base">Voucher</label>
-            <input
-              type="text"
-              placeholder="Enter discount voucher"
-              className="border bg-white border-gray-300 p-2 rounded-md w-full text-sm md:text-base"
-              value={voucherCode}
-              onChange={(e) => setVoucherCode(e.target.value)}
-            />
-            <button
-              onClick={() => handleDiscountVoucher(voucherCode)}
-              className="buttons mt-3 w-full"
-            >
-              Apply Voucher
-            </button>
-          </div>
-          <p className="text-sm md:text-base lg:text-lg mb-4">
-            Total Amount: {discountedAmount !== 0 ? discountedAmount : calculateTotalCost()} Tk </p>
-          <p className="text-sm md:text-base lg:text-lg font-bold mb-5">
-            Payment Method
-          </p>
-          <div className="flex flex-col gap-3">
-            <div className="flex justify-evenly items-center">
-            <button className="buttons py-2 px-6 rounded-lg shadow-md hover:shadow-lg">
-              Card
-            </button>
-            <button className="buttons py-2 px-4 rounded-lg shadow-md hover:shadow-lg">
-              Bkash
-            </button>
-            <button className="buttons py-2 px-4 rounded-lg shadow-md hover:shadow-lg">
-              Rocket
-            </button>
+        {user ? (
+          cart?.items.map((item) => (
+            <div key={item.sku} className="relative">
+              <div className="flex justify-between gap-1 mb-4 border-b py-3 px-2">
+                <img
+                  src={item.image_url || "/default-image.jpg"}
+                  alt={item.product_name || "Product Image"}
+                  className="w-[100px] h-[100px] sm:w-[138px] sm:h-[138px] rounded-[15px] bg-white"
+                />
+                <div className="flex flex-col flex-1 space-y-3 dark:text-black dark:bg-white">
+                  <div className="flex justify-between gap-2">
+                    <div className="flex flex-col px-5">
+                      <h1 className="font-poppins text-lg font-semibold">
+                        {item.product_name}
+                      </h1>
+                      <h1 className="text-base font-normal">
+                        Color: {item?.color_name}
+                      </h1>
+                    </div>
+                    <div>
+                    <MdCancel
+                      onClick={() => handleDeleteCart(item.sku)}
+                      className="text-xl font-black text-red-500 dark:text-red-500 cursor-pointer"
+                    />
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center dark:text-black dark:bg-white">
+                    <div className="bg-white rounded-full flex items-center gap-3 p-[2px]">
+                      <h1
+                        onClick={() => handleUserDecrease(item.sku)}
+                        className="bg-base-200 dark:text-black dark:bg-white p-2 rounded-full text-lg md:text-2xl font-semibold cursor-pointer"
+                      >
+                        <FiMinus />
+                      </h1>
+                      <h1 className="font-poppins text-xl font-semibold">
+                        {item.quantity}
+                      </h1>
+                      <h1
+                        onClick={() => handleUserIncrease(item.sku)}
+                        className="bg-base-200 dark:text-black dark:bg-white p-2 rounded-full text-lg md:text-2xl font-bold cursor-pointer"
+                      >
+                        <RxPlus />
+                      </h1>
+                    </div>
+                    <h1 className="font-poppins text-base md:text-xl font-semibold">
+                      BDT {(item.selling_price * item.quantity).toFixed(2)}
+                    </h1>
+                  </div>
+                </div>
+              </div>
             </div>
-            <button className="buttons font-bold">Cash on Delivery</button>
+          ))
+        ) : existingCart?.length > 0 ? (
+          <div className="w-full flex flex-col h-full justify-between p-2">
+            {existingCart?.map((cartEntry, index) => (
+              <div key={index}>
+                {cartEntry.items && cartEntry.items.length > 0 ? (
+                  cartEntry.items.map((item) => (
+                    <div
+                      key={item.sku}
+                      className="flex justify-center gap-4 mb-4 border-b pb-4"
+                    >
+                      <img
+                        src={item.image_url || "/default-image.jpg"}
+                        alt={item.product_name || "Product Image"}
+                        className="w-[100px] h-[100px] sm:w-[138px] sm:h-[138px] rounded-[15px] bg-white"
+                      />
+                      <div className="flex flex-col flex-1 space-y-3 dark:text-black dark:bg-white">
+                        <div className="flex justify-between gap-5 relative">
+                          <div className="flex flex-col">
+                            <h1 className="font-poppins text-lg font-semibold">
+                              {item.product_name}
+                            </h1>
+                            <h1 className="text-base font-normal">
+                              Color: {item?.color_name}
+                            </h1>
+                          </div>
+                          <MdCancel
+                            onClick={() => handleRemove(item.sku)}
+                            className="absolute top-0 right-0 text-xl font-black text-red-500 dark:text-red-500 cursor-pointer"
+                          />
+                        </div>
+                        <div className="flex justify-between items-center dark:text-black dark:bg-white">
+                          <div className="bg-white rounded-full flex items-center gap-3 p-[2px]">
+                            <h1
+                              onClick={() =>
+                                handleDecrease(item.sku, item.quantity)
+                              }
+                              className="bg-base-200 dark:text-black dark:bg-white p-2 rounded-full text-lg md:text-2xl font-semibold cursor-pointer"
+                            >
+                              <FiMinus />
+                            </h1>
+                            <h1 className="font-poppins text-xl font-semibold">
+                              {item.quantity}
+                            </h1>
+                            <h1
+                              onClick={() => handleIncrease(item.sku)}
+                              className="bg-base-200 dark:text-black dark:bg-white p-2 rounded-full text-lg md:text-2xl font-bold cursor-pointer"
+                            >
+                              <RxPlus />
+                            </h1>
+                          </div>
+                          <h1 className="font-poppins text-base md:text-xl font-semibold">
+                            BDT{" "}
+                            {(item.selling_price * item.quantity).toFixed(2)}
+                          </h1>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div>No items in this cart entry.</div>
+                )}
+              </div>
+            ))}
           </div>
+        ) : (
+          <div className="text-center py-10">
+            <h2 className="text-lg font-semibold dark:text-black">
+              Your cart is empty
+            </h2>
+          </div>
+        )}
+      </div>
+
+      <div className="w-11/12 mx-auto bottom-0 dark:text-black dark:bg-white">
+        <div className="space-y-[6px]">
+          <h1 className="font-poppins text-xs font-semibold">
+            Subtotal:{" "}
+            <span className="text-[#787878] font-normal">
+              (Shipping not Included)
+            </span>
+          </h1>
+          <h1 className="font-poppins text-2xl md:text-4xl font-semibold">
+            BDT {totalPrice.toFixed(2)}
+          </h1>
         </div>
+        <button
+          onClick={handleCheckout}
+          className="font-poppins text-lg font-semibold w-full buttons rounded-3xl mt-8"
+        >
+          {isCheckoutLoading ? "Processing..." : "Checkout"}
+        </button>
       </div>
     </div>
   );

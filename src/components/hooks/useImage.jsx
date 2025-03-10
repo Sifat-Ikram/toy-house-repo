@@ -1,7 +1,7 @@
 import useAxiosPublic from "./useAxiosPublic";
 import { useQuery } from "@tanstack/react-query";
 
-const useImage = ({ id }) => {
+const useImage = (inventoryId) => {
   const axiosPublic = useAxiosPublic();
 
   const {
@@ -10,10 +10,10 @@ const useImage = ({ id }) => {
     isLoading: imageIsLoading,
     error: imageError,
   } = useQuery({
-    queryKey: ["image", id],
+    queryKey: ["image", inventoryId],
     queryFn: async () => {
       const res = await axiosPublic.get(
-        `api/v1/admin/product/inventory/get/images?product-inventory-id=${id}&request-id=1234`
+        `api/v1/admin/product/inventory/get/images?product-inventory-id=${inventoryId}&request-id=1234`
       );
 
       return res.data.images;

@@ -13,7 +13,7 @@ const useBrands = () => {
     queryKey: ["brand"],
     queryFn: async () => {
       const res = await axiosPublic.get(
-        "/api/v1/open/brands/get/all?page=0&size=10&request-id=1234"
+        "/api/v1/open/brands/get/all?page=0&size=100&request-id=1234"
       );
       return res.data.brands;
     },

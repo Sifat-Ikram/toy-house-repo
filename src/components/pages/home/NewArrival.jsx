@@ -1,146 +1,114 @@
-import { useRef } from "react";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+import { useEffect, useRef, useState } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import { Navigation } from "swiper/modules";
 import { Link } from "react-router-dom";
-import useNewProducts from "../../hooks/useNewProducts";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import useNewProducts from "../../hooks/useNewProducts";
 
 const NewArrival = () => {
-  const sliderRef = useRef(null);
-  const prevRef = useRef(null);
-  const nextRef = useRef(null);
   const [newProducts] = useNewProducts();
-  
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [totalSlides, setTotalSlides] = useState(0);
+  const [slidesPerView, setSlidesPerView] = useState(2);
+  const swiperRef = useRef(null);
 
-  const settings = {
-    infinite: false,
-    slidesToShow: 3,
-    autoplay: false,
-    autoplaySpeed: 2000,
-    centerMode: false,
-    // centerPadding: "9%",
-    slidesToScroll: 1,
-    arrows: false,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          infinite: true,
-          slidesToShow: 3,
-          slidesToScroll: 1,
-          centerPadding: "10%",
-        },
-      },
-      {
-        breakpoint: 850,
-        settings: {
-          infinite: true,
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          centerPadding: "15%",
-        },
-      },
-      {
-        breakpoint: 600,
-        settings: {
-          infinite: true,
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          centerPadding: "28%",
-        },
-      },
-      {
-        breakpoint: 500,
-        settings: {
-          infinite: true,
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          centerPadding: "20%",
-        },
-      },
-      {
-        breakpoint: 400,
-        settings: {
-          infinite: true,
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          centerPadding: "20%",
-        },
-      },
-    ],
-    afterChange: (index) => {
-      const slider = sliderRef.current;
-      if (slider) {
-        const { slideCount } = slider.innerSlider.state;
-        const lastSlide = slideCount - settings.slidesToShow;
+  useEffect(() => {
+    setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 500);
+  }, []);
 
-        if (prevRef.current) {
-          prevRef.current.style.display = index === 0 ? "none" : "block";
-        }
-        if (nextRef.current) {
-          nextRef.current.style.display = index >= lastSlide ? "none" : "block";
-        }
-      }
-    },
-  };
+  if (!newProducts || newProducts.length === 0) {
+    return (
+      <h1 className="text-center font-roboto text-lg font-normal">
+        No new arrivals at the moment.
+      </h1>
+    );
+  }
 
   return (
-    <div className="py-20 space-y-6 md:space-y-8 rounded-md">
-      <h2 className="text-lg md:text-xl lg:text-4xl mb-10 font-bold text-center font-poppins">
+    <div className="w-full space-y-8 sm:space-y-10 md:space-y-14 py-10 sm:py-14 md:py-20 bg-[#f5f5f5]">
+      <h2 className="mb-10 text-xl md:text-2xl lg:text-4xl font-bold text-center font-poppins">
         New Arrivals
       </h2>
 
-      <div className="relative w-full max-sm:px-4 sm:w-11/12 mx-auto">
-        <Slider ref={sliderRef} {...settings}>
-          {newProducts?.map((arrival) => (
-            <div key={arrival.id} className="px-2">
-              <div className="bg-white shadow w-full mx-[3px] rounded-md sm:rounded-lg md:rounded-xl lg:rounded-3xl overflow-hidden group">
-                <img
-                  src={arrival.display_image_url}
-                  alt={arrival?.product_name}
-                  className="object-cover  rounded-t-md sm:rounded-t-lg md:rounded-t-xl lg:rounded-t-3xl w-full h-[180px] md:h-[170px] lg:h-[200px] transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="p-4 text-left space-y-2">
-                  <h3 className="text-[12px] sm:text-sm md:text-[16px] lg:text-[19px] font-bold font-poppins min-h-10">
-                    {arrival?.product_name
-                      ? arrival?.product_name.slice(0, 25)
-                      : "No Name Available"}{" "}
-                  </h3>
-                  <p className="text-[9px] sm:text-xs md:text-sm lg:text-lg font-light font-roboto mb-1 min-h-16">
-                    {arrival?.summary
-                      ? arrival?.summary.slice(0, 65)
-                      : "No Details Available"}{" "}
-                  </p>
-                  <Link to={`/productDetail/${arrival.id}`}>
-                    <button className="flex justify-center buttons items-center shadow rounded-md sm:rounded-lg md:rounded-xl lg:rounded-3xl font-roboto gap-1 hover:scale-105 transition-transform">
-                      View Details <IoIosArrowForward size={20} />
-                    </button>
-                  </Link>
+      <div className="relative w-11/12 sm:w-5/6 mx-auto">
+        <Swiper
+          ref={swiperRef}
+          slidesPerView={slidesPerView}
+          spaceBetween={10}
+          onSwiper={(swiper) => {
+            setTotalSlides(swiper.slides.length);
+            setSlidesPerView(swiper.params.slidesPerView);
+          }}
+          onSlideChange={(swiper) => setCurrentIndex(swiper.activeIndex)}
+          breakpoints={{
+            1750: { slidesPerView: 6, slidesPerGroup: 1, spaceBetween: 30 },
+            1600: { slidesPerView: 6, slidesPerGroup: 1, spaceBetween: 20 },
+            1400: { slidesPerView: 5, slidesPerGroup: 1, spaceBetween: 15 },
+            900: { slidesPerView: 4, slidesPerGroup: 1, spaceBetween: 20 },
+            500: { slidesPerView: 3, slidesPerGroup: 1, spaceBetween: 5 },
+          }}
+          modules={[Navigation]}
+          className="mySwiper"
+        >
+          {newProducts?.map((featured) => (
+            <SwiperSlide key={featured.id} className="shadow mb-2 rounded-lg">
+              <Link to={`/productDetail/${featured.id}`}>
+                <div className="overflow-hidden group rounded-lg">
+                  <div className="w-full h-[150px] md:h-[170px] lg:h-[200px]">
+                    <img
+                      src={featured.display_image_url}
+                      alt={featured?.product_name}
+                      loading="lazy"
+                      className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="max-lg:py-3 px-1 sm:px-2 lg:p-4 text-left space-y-[5px]">
+                    <p className="text-[13px] font-roboto line-clamp-1">
+                      {featured?.brand_name || " "}
+                    </p>
+                    <h3 className="text-base sm:text-lg md:text-xl line-clamp-1 lg:text-lg font-bold font-poppins">
+                      {featured?.product_name
+                        ? featured?.product_name
+                        : "No Name Available"}
+                    </h3>
+                    <p className="text-sm md:text-base lg:text-lg font-medium font-roboto mb-1">
+                      {featured?.category_name}
+                    </p>
+                    <p className="text-xs md:text-sm lg:text-lg font-normal font-roboto mb-1">
+                      BDT {featured?.selling_price}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </Link>
+            </SwiperSlide>
           ))}
-        </Slider>
+        </Swiper>
 
-        <button
-          ref={prevRef}
-          onClick={() => sliderRef.current.slickPrev()}
-          className="custom-prev absolute top-1/2 -translate-y-1/2 left-0 sm:-left-8 md:-left-10 lg:-left-12 z-20 p-3 sm:p-1 md:p-3 rounded-full bg-[#FEF987] shadow-md transition"
-          aria-label="Previous Slide"
-          style={{ display: "none" }}
-        >
-          <IoIosArrowBack className="text-xl sm:text-3xl md:text-2xl lg:text-4xl" />
-        </button>
+        {/* Left Button - Show only if not on the first slide */}
+        {currentIndex > 0 && (
+          <button
+            className="custom-prev absolute top-1/2 -translate-y-1/2 -left-5 sm:-left-8 md:-left-10 lg:-left-12 z-20 p-1 sm:p-1 md:p-2 lg:p-3 rounded-full bg-[#FEF987] shadow-md transition"
+            aria-label="Previous Slide"
+            onClick={() => swiperRef.current.swiper.slidePrev()}
+          >
+            <IoIosArrowBack className="text-xl sm:text-3xl md:text-2xl lg:text-4xl" />
+          </button>
+        )}
 
-        <button
-          ref={nextRef}
-          onClick={() => sliderRef.current.slickNext()}
-          className="custom-next absolute top-1/2 -translate-y-1/2 right-0 sm:-right-8 md:-right-10 lg:-right-12 z-20 p-3 sm:p-1 md:p-3 rounded-full bg-[#FEF987] shadow-md transition"
-          aria-label="Next Slide"
-        >
-          <IoIosArrowForward className="text-xl sm:text-3xl md:text-2xl lg:text-4xl" />
-        </button>
+        {/* Right Button - Hide if last slide is fully visible */}
+        {currentIndex < totalSlides - slidesPerView && (
+          <button
+            className="custom-next absolute top-1/2 -translate-y-1/2 -right-4 sm:-right-8 md:-right-10 lg:-right-12 z-20 p-1 sm:p-1 md:p-2 lg:p-3 rounded-full bg-[#FEF987] shadow-md transition"
+            aria-label="Next Slide"
+            onClick={() => swiperRef.current.swiper.slideNext()}
+          >
+            <IoIosArrowForward className="text-xl sm:text-3xl md:text-2xl lg:text-4xl" />
+          </button>
+        )}
       </div>
     </div>
   );

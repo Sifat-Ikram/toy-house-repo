@@ -1,82 +1,55 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import ProductFilters from "./ProductFilters";
-import useNewProducts from "../../hooks/useNewProducts";
-import { Link } from "react-router-dom";
-import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
+import Card from "../../hooks/Card";
+import useAllProducts from "../../hooks/useAllProducts";
 
 const AllProducts = () => {
-  const [newProducts, refetch, isLoading, error] = useNewProducts();
+  const [allProducts, refetch, isLoading, error] = useAllProducts();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedAge, setSelectedAge] = useState("");
+  const [selectedAge, setSelectedAge] = useState([0, Infinity]);
   const [priceRange, setPriceRange] = useState([0, 2000]);
   const [filtersVisible, setFiltersVisible] = useState(true);
   const [filtersDrawerVisible, setFiltersDrawerVisible] = useState(false);
   const [sortOrder, setSortOrder] = useState("");
   const [page, setPage] = useState(0);
-  const [allProducts, setAllProducts] = useState([]);
-  const [isFetching, setIsFetching] = useState(false);
+  const isFetchingRef = useRef(false);
 
   useEffect(() => {
-    if (newProducts.length > 0) {
-      setAllProducts((prevProducts) => [...prevProducts, ...newProducts]);
-      setIsFetching(false);
-    }
-  }, [newProducts]);
+    window.scrollTo(0, 0);
+  }, []);
 
-  // Scroll event listener for infinite scrolling
-  useEffect(() => {
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } =
-        document.documentElement;
+  const filteredProducts = useMemo(() => {
+    let filtered = allProducts.filter((prod) => {
+      // Match brand if a brand is selected, otherwise allow all
+      const matchesBrand = !selectedBrand || prod?.brand_name === selectedBrand;
 
-      if (
-        scrollTop + clientHeight >= scrollHeight - 100 && // Near the bottom
-        !isLoading &&
-        !isFetching
-      ) {
-        setPage((prevPage) => prevPage + 1);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isLoading, isFetching]);
-
-  // Fetch next page of products when `page` changes
-  useEffect(() => {
-    if (page > 0) {
-      setIsFetching(true); // Set fetching state
-      refetch(); // Manually trigger data fetching via the existing hook
-    }
-  }, [page, refetch]);
-
-  // Error handling (optional)
-  if (error) {
-    return <div>Error loading products: {error.message}</div>;
-  }
-
-  const filteredProducts = allProducts
-    ?.filter((prod) => {
-      const matchesBrand =
-        selectedBrand === "" || prod?.brand?.name === selectedBrand;
+      // Match category if a category is selected, otherwise allow all
       const matchesCategory =
-        selectedCategory === "" || prod.category?.name === selectedCategory;
+        !selectedCategory || prod?.category_name === selectedCategory;
+
+      // Match age range if age is selected, otherwise allow all
       const matchesAge =
-        selectedAge === "" ||
-        (selectedAge >= prod.minimum_age_range &&
-          selectedAge <= prod.maximum_age_range);
+        !selectedAge ||
+        (selectedAge[0] <= prod?.maximum_age_range &&
+          selectedAge[1] >= prod?.minimum_age_range);
+
+      // Match price range
       const matchesPrice =
-        prod.base_price >= priceRange[0] && prod.base_price <= priceRange[1];
+        prod?.selling_price >= priceRange[0] &&
+        prod?.selling_price <= priceRange[1];
+
+      // Match search term in product name
       const matchesSearch =
         searchTerm === "" ||
-        (prod.product_name || "")
+        (prod?.product_name || "")
           .toLowerCase()
           .includes(searchTerm.toLowerCase());
 
+      // Only return products that match all criteria
       return (
         matchesBrand &&
         matchesCategory &&
@@ -84,12 +57,54 @@ const AllProducts = () => {
         matchesPrice &&
         matchesSearch
       );
-    })
-    .sort((a, b) => {
-      if (sortOrder === "highToLow") return b.base_price - a.base_price;
-      if (sortOrder === "lowToHigh") return a.base_price - b.base_price;
-      return 0;
-    });
+    }); // Log filtered products to debug
+
+    // Sorting logic - sort after filtering
+    if (sortOrder === "highToLow") {
+      filtered.sort((a, b) => b.selling_price - a.selling_price);
+    } else if (sortOrder === "lowToHigh") {
+      filtered.sort((a, b) => a.selling_price - b.selling_price);
+    }
+
+    return filtered;
+  }, [
+    allProducts,
+    selectedBrand,
+    selectedCategory,
+    selectedAge,
+    priceRange,
+    searchTerm,
+    sortOrder,
+  ]);
+
+  // Scroll event listener for infinite scrolling
+  const handleScroll = useCallback(() => {
+    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+    if (scrollTop + clientHeight >= scrollHeight - 100 && !isLoading) {
+      setPage((prevPage) => prevPage + 1);
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll); // Proper cleanup
+  }, [handleScroll]);
+
+  // Fetch next page of products when `page` changes
+  useEffect(() => {
+    if (page > 0 && !isFetchingRef.current) {
+      isFetchingRef.current = true;
+      refetch().finally(() => {
+        isFetchingRef.current = false;
+      });
+    }
+  }, [page, refetch]);
+
+  // Error handling (optional)
+  if (error) {
+    return <div>Error loading products: {error.message}</div>;
+  }
 
   const handleOutsideClick = (e) => {
     if (e.target.id === "overlay") {
@@ -104,10 +119,6 @@ const AllProducts = () => {
     setPriceRange([0, 2000]);
     setSearchTerm("");
     setSelectedAge("");
-  };
-
-  const handleAddToCart = (product) => {
-    console.log(product);
   };
 
   return (
@@ -135,17 +146,17 @@ const AllProducts = () => {
               is curated to provide you with only the finest options.
             </motion.p>
           </div>
-          <div className="w-full sm:w-11/12 mx-auto max-sm:px-2 flex flex-wrap justify-between items-center my-3 px-4 py-2 bg-base-200">
+          <div className="w-full max-sm:px-2 dark:bg-white flex flex-wrap justify-between items-center my-3 px-4 py-2 bg-base-200">
             {/* Filters Toggle Button */}
             <div
               onClick={() => setFiltersVisible(!filtersVisible)}
-              className="hidden sm:block text-sm sm:text-base md:text-lg font-semibold text-gray-800 hover:text-gray-600 px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
+              className="hidden sm:block text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-800 hover:text-gray-600 dark:text-black px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
             >
               {filtersVisible ? "Hide Filters" : "Show Filters"}
             </div>
             <div
               onClick={() => setFiltersDrawerVisible(!filtersDrawerVisible)}
-              className="block sm:hidden text-sm sm:text-base md:text-lg font-semibold text-gray-800 hover:text-gray-600 px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
+              className="block sm:hidden text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-800 hover:text-gray-600 dark:text-black px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
             >
               {!filtersDrawerVisible ? "Show Filters" : "Hide Filters"}
             </div>
@@ -159,50 +170,61 @@ const AllProducts = () => {
             )}
 
             {/* Filter Drawer */}
-            <div
-              className={`fixed top-0 left-0 h-full bg-white shadow-lg z-40 pt-28 px-3 transform ${
-                filtersDrawerVisible ? "translate-x-0" : "-translate-x-full"
-              } transition-transform duration-300 ease-in-out`}
-              style={{ width: "250px" }}
+            <motion.div
+              className="fixed top-0 left-0 h-full bg-white dark:bg-white shadow-lg z-40 pt-28 px-3"
+              initial={{ x: "-100%" }}
+              animate={{ x: filtersDrawerVisible ? 0 : "-100%" }}
+              transition={{ duration: 0.3 }}
             >
               <ProductFilters
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 selectedBrand={selectedBrand}
                 setSelectedBrand={setSelectedBrand}
+                setSelectedCategory={setSelectedCategory}
+                selectedCategory={selectedCategory}
                 priceRange={priceRange}
                 setPriceRange={setPriceRange}
                 selectedAge={selectedAge}
                 setSelectedAge={setSelectedAge}
               />
-            </div>
+            </motion.div>
 
             {/* Sort By Section */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <h1 className="text-sm sm:text-base md:text-lg font-semibold text-gray-700">
+              <h1 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold">
                 Sort By:
               </h1>
               <select
-                className="p-1 md:p-2 rounded-lg bg-base-100 border border-gray-200 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="p-1 md:p-2 rounded-lg bg-base-100 border dark:bg-white text-sm sm:text-base focus:outline-none focus:ring-2"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
               >
-                <option value="" className="text-gray-700">
+                <option
+                  value=""
+                  className="text-xs sm:text-sm md:text-base lg:text-lg dark:text-black text-gray-700"
+                >
                   Featured
                 </option>
-                <option value="highToLow" className="text-gray-700">
+                <option
+                  value="highToLow"
+                  className="text-xs sm:text-sm md:text-base lg:text-lg dark:text-black text-gray-700"
+                >
                   High to Low
                 </option>
-                <option value="lowToHigh" className="text-gray-700">
+                <option
+                  value="lowToHigh"
+                  className="text-xs sm:text-sm md:text-base lg:text-lg dark:text-black text-gray-700"
+                >
                   Low to High
                 </option>
               </select>
             </div>
           </div>
 
-          <div className="w-11/12 mx-auto flex justify-center gap-1 sm:gap-3 md:gap-5">
+          <div className="max-sm:px-[10px] flex justify-center gap-1 sm:gap-3 md:gap-5">
             {filtersVisible && (
-              <div className="hidden sm:flex flex-col bg-base-100 w-full sm:w-1/3 md:w-1/4 py-6 space-y-4 px-3 md:px-5 lg:shadow-lg">
+              <div className="hidden sm:flex flex-col dark:bg-white bg-base-100 w-full sm:w-1/3 md:w-1/4 py-6 space-y-4 px-3 md:px-5 lg:shadow-lg">
                 <ProductFilters
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
@@ -219,11 +241,11 @@ const AllProducts = () => {
             )}
             <div className="flex-1">
               {filteredProducts.length ? (
-                <div className="pb-5">
+                <div className="pb-5 max-sm:px-1">
                   <div className="flex items-center space-x-2">
                     {/* Render selected brand */}
                     {selectedBrand.length > 0 && (
-                      <div className="flex items-center bg-gray-200 text-sm px-[10px] py-1 rounded-full">
+                      <div className="flex items-center text-sm px-[10px] py-1 rounded-full">
                         {selectedBrand}
                         <button
                           onClick={clearBrand}
@@ -235,7 +257,7 @@ const AllProducts = () => {
                     )}
                     {/* Render selected Category */}
                     {selectedCategory.length > 0 && (
-                      <div className="flex items-center bg-gray-200 text-sm px-[10px] py-1 rounded-full">
+                      <div className="flex items-center text-sm px-[10px] py-1 rounded-full">
                         {selectedCategory}
                         <button
                           onClick={clearCategory}
@@ -247,61 +269,24 @@ const AllProducts = () => {
                     )}
 
                     {/* Clear All button */}
-                    {selectedBrand && (
+                    {(selectedBrand ||
+                      selectedCategory ||
+                      selectedAge ||
+                      searchTerm ||
+                      priceRange[0] !== 0 ||
+                      priceRange[1] !== 2000) && (
                       <button
                         onClick={clearAll}
-                        className="flex items-center bg-gray-200 text-sm px-[10px] py-1 rounded-full"
+                        className="flex items-center text-sm px-[10px] py-1 rounded-full"
                       >
                         Clear All
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-5">
                     {filteredProducts.map((product) => (
-                      <div
-                        key={product.id}
-                        className="w-full product-cart pb-5 rounded-md sm:rounded-lg md:rounded-xl flex flex-col overflow-hidden group"
-                      >
-                        <Link to={`/productDetail/${product.id}`}>
-                          <img
-                            src={product?.display_image_url}
-                            alt={product?.product_name}
-                            className="bg-base-200 h-[300px] sm:h-[250px] md:h-[280px] lg:h-[320px] rounded-md sm:rounded-lg md:rounded-xl w-full transition-transform duration-300 group-hover:scale-105"
-                          />
-                          <div className="flex flex-col justify-start space-y-1 pt-4 lg:pt-5">
-                            <p className="text-[13px] font-roboto">
-                              {product?.category?.name || " "}
-                            </p>
-                            <h2 className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl font-poppins text-[#3E3E3E] sm:min-h-14 md:min-h-14 lg:min-h-16">
-                              {product?.product_name || "Product Name"}
-                            </h2>
-
-                            <p className="text-sm font-roboto min-h-10">
-                              {product.summary}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <Rating
-                                style={{ maxWidth: 100, color: "#dd350b" }}
-                                value={product?.rating}
-                                readOnly
-                              />
-                              <span className="text-sm text-gray-700 dark:text-gray-300">
-                                {product?.rating}
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                        <div className="flex items-center mt-2 gap-2">
-                          <button
-                            onClick={() => handleAddToCart(product)}
-                            className="w-fit md:w-1/2 max-md:px-6 py-2 sm:py-[6px] md:py-2 rounded-md sm:rounded-lg md:rounded-xl lg:rounded-3xl bg-[#317ff3] hover:bg-[#31b2f3] text-sm lg:text-base font-semibold text-white transition-all cursor-pointer"
-                          >
-                            Add to Cart
-                          </button>
-                          <p className="font-bold text-base sm:text-sm md:text-base lg:text-lg text-[#3E3E3E]">
-                            Tk {product?.selling_price}
-                          </p>
-                        </div>
+                      <div key={product.id}>
+                        <Card product={product} />
                       </div>
                     ))}
                   </div>

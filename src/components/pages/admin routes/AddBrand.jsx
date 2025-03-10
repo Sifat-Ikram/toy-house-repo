@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import useBrands from "../../hooks/useBrands";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
+import { FaTrash } from "react-icons/fa";
 
 const AddBrand = () => {
   const {
@@ -102,6 +103,33 @@ const AddBrand = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosPublic
+          .delete(`/api/v1/admin/brands/delete/${id}?request-id=1234`)
+          .then((response) => {
+            brandRefetch();
+            if (response.status === 200) {
+              Swal.fire("Deleted!", "Brand has been deleted.", "success");
+            }
+          })
+          .catch((error) => {
+            console.log(error.message);
+            Swal.fire("Error!", "Something went wrong.", "error");
+          });
+      }
+    });
+  };
+
   return (
     <div className="container mx-auto p-4 bg-base-200 text-gray-700">
       <div className="text-center mb-6">
@@ -134,7 +162,7 @@ const AddBrand = () => {
               </label>
               <input
                 id="description"
-                {...register("description",)}
+                {...register("description")}
                 placeholder="Category description"
                 className="input input-bordered w-full"
               />
@@ -183,7 +211,7 @@ const AddBrand = () => {
           {brands.length > 0 ? (
             brands.map((brand) => (
               <li key={brand.brand_id} className="text-lg">
-                <div className="flex flex-col items-center gap-2 shadow rounded-lg bg-white border">
+                <div className="relative flex flex-col items-center gap-2 shadow rounded-lg bg-white border">
                   <img
                     src={brand.brand_logo_url}
                     alt={brand.name}
@@ -196,6 +224,14 @@ const AddBrand = () => {
                     <p className="text-sm font-roboto min-h-10">
                       {brand.description}
                     </p>
+                  </div>
+                  <div>
+                    <button
+                      className="bg-red-600 absolute top-[2px] right-[2px] text-white p-2 rounded-full hover:bg-red-700"
+                      onClick={() => handleDelete(brand.brand_id)}
+                    >
+                      <FaTrash className="text-xs" />
+                    </button>
                   </div>
                 </div>
               </li>

@@ -1,145 +1,167 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import useAxiosPublic from "../../hooks/useAxiosPublic";
+import Swal from "sweetalert2";
+import useReviews from "../../hooks/useReviews";
 
-const CustomerReviews = ({ reviews }) => {
-  const [repliesInput, setRepliesInput] = useState({});
-  const [reviewsData, setReviewsData] = useState(reviews);
+const CustomerReviews = ({ productId, setReviewLength }) => {
+  const [selectedReviews, reviewRefetch, reviewIsLoading, reviewError] =
+    useReviews({ id: productId });
+  const axiosPublic = useAxiosPublic();
   const [newReview, setNewReview] = useState("");
-  const [allReplies, setAllReplies] = useState(() => {
-    const replies = {};
-    reviewsData.forEach((review) => {
-      replies[review.id] = review.replies || [];
-    });
-    return replies;
-  });
-  const [visibleReplies, setVisibleReplies] = useState({});
+  const [rating, setRating] = useState(0);
 
-  const handleAddReview = () => {
-    if (!newReview.trim()) return;
+  const handleAddReview = async () => {
+    // Ensure the rating is a number
+    const numericRating = Number(rating);
+
+    if (!newReview.trim() || numericRating <= 0 || numericRating > 5) {
+      Swal.fire({
+        icon: "warning",
+        title: "Incomplete Review",
+        text: "Please add a comment and a rating between 1 and 5 before submitting.",
+        position: "top-end", // Positioning in the top-right corner
+        showConfirmButton: false, // No button will be shown
+        timer: 3000, // Optional: auto close after 3 seconds
+      });
+      return;
+    }
+
     const newReviewData = {
-      id: Date.now(),
-      username: "Anonymous",
-      userImage: "https://via.placeholder.com/50",
-      date: new Date().toISOString(),
-      text: newReview,
-      likes: 0,
-      replies: [],
+      product_id: productId,
+      user_id: 1,
+      rating: numericRating,
+      comment: newReview,
     };
-    setReviewsData([newReviewData, ...reviewsData]);
-    setNewReview("");
+
+    try {
+      const response = await axiosPublic.post(
+        "/api/v1/user/add/review?request-id=1234",
+        newReviewData
+      );
+
+      if (response.status === 201) {
+        setNewReview("");
+        setRating(0);
+        reviewRefetch();
+        Swal.fire({
+          icon: "success",
+          title: "Review Added!",
+          position: "top-end", // Positioning in the top-right corner
+          showConfirmButton: false, // No button will be shown
+          timer: 3000, // Optional: auto close after 3 seconds
+        });
+      }
+    } catch (error) {
+      console.error("Error adding review:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong while submitting your review. Please try again later.",
+        position: "top-end", // Positioning in the top-right corner
+        showConfirmButton: false, // No button will be shown
+        timer: 3000, // Optional: auto close after 3 seconds
+      });
+    }
   };
 
-  const handleReply = (id, replyText) => {
-    if (!replyText.trim()) return;
-    setAllReplies((prev) => ({
-      ...prev,
-      [id]: [...prev[id], { text: replyText, date: new Date().toISOString() }],
-    }));
-    setRepliesInput((prev) => ({ ...prev, [id]: "" }));
-  };
+  useEffect(() => {
+    setReviewLength(selectedReviews.length);
+  }, [setReviewLength, selectedReviews]);
+
+  if (reviewIsLoading) {
+    return <div>Loading reviews...</div>;
+  }
+
+  if (reviewError) {
+    return <div>Error loading reviews: {reviewError.message}</div>;
+  }
 
   return (
-    <div className="w-11/12">
-        <div className="p-5 mb-6">
-        <h2 className="text-lg font-semibold mb-4 max-sm:text-black">Add Your Review</h2>
-        <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
-          <input
-            type="text"
-            placeholder="Write your review here..."
-            value={newReview}
-            onChange={(e) => setNewReview(e.target.value)}
-            className="flex-1 px-3 py-[6px] sm:py-[10px] bg-white border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
-          />
-          <button
-            onClick={handleAddReview}
-            className="buttons"
-          >
-            Give Review
-          </button>
+    <div className="w-11/12 space-y-16 dark:text-black dark:bg-white">
+      {/* Add Review Section */}
+      <div className="space-y-4">
+        <div className="flex flex-col space-y-2">
+          {/* Star Rating */}
+          <div className="flex items-center space-x-2">
+            <span className="text-lg font-roboto">Rating:</span>
+            <div className="flex space-x-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setRating(star)}
+                  className={`text-2xl ${
+                    rating >= star ? "text-yellow-600" : "text-gray-300"
+                  } transition duration-200 hover:text-yellow-600`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Review Input */}
+          <div className="relative w-full">
+            <textarea
+              placeholder="Share your thoughts..."
+              value={newReview}
+              onChange={(e) => setNewReview(e.target.value)}
+              className="w-full bg-base-200 dark:bg-white px-4 py-3 border rounded-xl resize-none min-h-[120px]"
+            />
+          </div>
+
+          {/* Submit Button */}
+          <div>
+            <button
+              onClick={handleAddReview}
+              className="text-base buttons transform transition duration-300"
+            >
+              Submit Review
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Display Reviews */}
       <div>
-      {reviewsData.map((review) => (
-        <div key={review.id} className="p-5 mb-6 shadow">
-          <div className="flex items-center mb-2">
-            <img
-              src={review.userImage}
-              alt={`${review.username} avatar`}
-              className="w-12 h-12 rounded-full mr-4"
-            />
-            <div>
-              <h4 className="text-lg font-semibold text-gray-800">
-                {review.username}
-              </h4>
-              <p className="text-sm text-gray-500">
-                {new Date(review.date).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
-          <p className="text-gray-700 mb-1">{review.text}</p>
-          <div className="flex items-center space-x-4">
-            <button className="px-4 py-1">👍 {review.likes}</button>
-            <h1
-            className="cursor-pointer"
-              onClick={() =>
-                setVisibleReplies((prev) => ({
-                  ...prev,
-                  [review.id]: !prev[review.id],
-                }))
-              }
-            >
-              Reply
-            </h1>
-          </div>
-          {/* Replies Section */}
-          {visibleReplies[review.id] && (
-            <div className="mt-4">
-              {allReplies[review.id]?.length > 0 && (
-                <div>
-                  <h5 className="text-sm font-bold text-gray-700 mb-2">
-                    Replies:
-                  </h5>
-                  <ul className="space-y-2">
-                    {allReplies[review.id].map((reply, idx) => (
-                      <li
-                        key={idx}
-                        className="p-2 rounded-lg"
-                      >
-                        <p className="text-gray-600">{reply.text}</p>
-                        <span className="text-xs text-gray-400">
-                          {new Date(reply.date).toLocaleString()}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+        <h1 className="text-2xl font-roboto font-semibold">
+          Reviews and Ratings
+        </h1>
+        <div className="space-y-4 md:space-y-6">
+          {selectedReviews.length > 0 ? (
+            selectedReviews.map((review) => (
+              <div key={review.id} className="p-[10px] md:p-3 lg:p-5 space-y-[1px] sm:space-y-1 md:space-y-2 shadow rounded-lg">
+                <div className="flex items-center">
+                  <h4 className="text-lg font-semibold text-gray-800">
+                    {review.id}
+                  </h4>
+                  <p className="text-sm text-gray-500 ml-4">
+                    {new Date(review.time_frame).toLocaleDateString()}
+                  </p>
                 </div>
-              )}
-              {/* Reply Input */}
-              <div className="mt-2 flex items-center space-x-2 w-1/2">
-                <input
-                  type="text"
-                  placeholder="Write a reply..."
-                  value={repliesInput[review.id] || ""}
-                  onChange={(e) =>
-                    setRepliesInput((prev) => ({
-                      ...prev,
-                      [review.id]: e.target.value,
-                    }))
-                  }
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
-                />
-                <button
-                  onClick={() =>
-                    handleReply(review.id, repliesInput[review.id])
-                  }
-                  className="px-4 py-2 buttons text-lg font-normal"
-                >
-                  Send
-                </button>
+                {/* Display Rating */}
+                <div className="flex space-x-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span
+                      key={star}
+                      className={`text-2xl ${
+                        review.rating >= star
+                          ? "text-yellow-500"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+                {/* Display Review Text */}
+                <p className="text-gray-700">{review?.comment}</p>
               </div>
-            </div>
+            ))
+          ) : (
+            <p className="text-gray-500 text-center">No reviews yet.</p>
           )}
         </div>
-      ))}
       </div>
     </div>
   );

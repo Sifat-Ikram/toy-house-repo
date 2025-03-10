@@ -7,6 +7,7 @@ import "quill/dist/quill.snow.css";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
 import { useNavigate } from "react-router-dom";
 import useMaterials from "../../hooks/useMaterials";
+import Swal from "sweetalert2";
 
 const AddProduct = () => {
   const axiosPublic = useAxiosPublic();
@@ -15,15 +16,17 @@ const AddProduct = () => {
   const [categories] = useCategory();
   const editorRef = useRef();
   const boxRef = useRef();
+  const highlightRef = useRef();
   const [description, setDescription] = useState("");
+  const [highlightItems, setHighlightItems] = useState("");
   const [boxItem, setBoxItem] = useState("");
   const [selection, setSelection] = useState("box");
   const { register, handleSubmit, reset, control } = useForm();
   const [selectedMaterials, setSelectedMaterials] = useState([]);
-  const [showMaterials, setShowMaterials] = useState(false);
 
   const [allMaterials] = useMaterials();
 
+  // description
   useEffect(() => {
     if (!editorRef.current) {
       editorRef.current = new Quill("#editor", {
@@ -42,6 +45,7 @@ const AddProduct = () => {
     }
   }, []);
 
+  // box items
   useEffect(() => {
     if (!boxRef.current) {
       boxRef.current = new Quill("#boxEditor", {
@@ -60,19 +64,76 @@ const AddProduct = () => {
     }
   }, []);
 
-  const handleOpenMaterial = () => {
-    setShowMaterials((prevShowMaterials) => !prevShowMaterials);
-  };
+  // highlight
+  useEffect(() => {
+    if (!highlightRef.current) {
+      highlightRef.current = new Quill("#highlightEditor", {
+        theme: "snow",
+        modules: {
+          toolbar: [
+            ["bold", "italic", "underline"], // Text formatting
+            [{ list: "ordered" }, { list: "bullet" }], // Lists
+          ],
+        },
+      });
+      highlightRef.current.on("text-change", () => {
+        // Directly updating the description in state for real-time updates
+        setHighlightItems(highlightRef.current.root.innerHTML);
+      });
+    }
+  }, []);
 
   const handleSelectionChange = (event) => {
     setSelection(event.target.value); // Update state based on radio selection
   };
 
   const onSubmit = async (data) => {
+    // Check if box items are provided
+    if (!boxItem) {
+      Swal.fire({
+        position: "top-end",
+        icon: "error",
+        title: "Box items are required!",
+        showConfirmButton: false,
+        timer: 2000,
+        toast: true,
+      });
+      return; // Prevent the form submission if boxItem is empty
+    }
+
+    // Check if highlighted items are provided
+    if (!highlightItems) {
+      Swal.fire({
+        position: "top-end",
+        icon: "error",
+        title: "Highlight items are required!",
+        showConfirmButton: false,
+        timer: 2000,
+        toast: true,
+      });
+      return; // Prevent the form submission if highlightItems is empty
+    }
+
     const formattedDimensions = [];
 
     // Conditionally push dimensions based on the user's selection
     if (selection === "box") {
+      if (
+        !data.boxHeight ||
+        !data.boxWidth ||
+        !data.boxDepth ||
+        !data.boxWeight
+      ) {
+        Swal.fire({
+          position: "top-end",
+          icon: "error",
+          title: "Please fill all box dimensions!",
+          showConfirmButton: false,
+          timer: 3000,
+          toast: true,
+        });
+        return;
+      }
       formattedDimensions.push({
         type: "BOX",
         height: Number(data.boxHeight),
@@ -83,6 +144,22 @@ const AddProduct = () => {
         weight_unit: data.boxWeightUnit,
       });
     } else if (selection === "product") {
+      if (
+        !data.productHeight ||
+        !data.productWidth ||
+        !data.productDepth ||
+        !data.productWeight
+      ) {
+        Swal.fire({
+          position: "top-end",
+          icon: "error",
+          title: "Please fill all product dimensions!",
+          showConfirmButton: false,
+          timer: 3000,
+          toast: true,
+        });
+        return;
+      }
       formattedDimensions.push({
         type: "PRODUCT",
         height: Number(data.productHeight),
@@ -101,14 +178,15 @@ const AddProduct = () => {
         name: data.name,
         number_of_pieces: data.number_of_pieces,
         warranty_info: data.warranty_info,
-        summary: data.summary,
         minimum_age_range: Number(data.minimum_age_range),
         maximum_age_range: Number(data.maximum_age_range),
         material_ids: selectedMaterials,
         dimensions: formattedDimensions,
         description: description,
         in_the_box: boxItem,
-      },
+        summary: highlightItems,
+        return_and_refund_policy: ""
+      }
     };
 
     console.log(formattedData);
@@ -119,15 +197,41 @@ const AddProduct = () => {
         "/api/v1/open/products/add/product?request-id=1234",
         formattedData
       );
-      console.log("Response:", response.data);
+      console.log(response);
+
+      if (response.status === 201 || response.status === 200) {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Product added successfully!",
+          showConfirmButton: false,
+          timer: 2000,
+          toast: true,
+        });
+      }
 
       // Reset the form and state after successful submission
       reset();
+      setBoxItem("");
       setDescription("");
+      setHighlightItems("");
       setSelectedMaterials([]);
+
+      // Navigate to the product page after successful submission
       navigate(`/dashboard/inventories/${response.data?.product?.product_id}`);
     } catch (error) {
-      console.error("Error posting data:", error);
+      console.error("Error posting data:", error.message);
+
+      // Show error message if something goes wrong during the request
+      Swal.fire({
+        position: "top-end",
+        icon: "error",
+        title: "Failed to add product!",
+        text: error.response?.data?.message || error.message,
+        showConfirmButton: false,
+        timer: 3000,
+        toast: true,
+      });
     }
   };
 
@@ -136,13 +240,16 @@ const AddProduct = () => {
       <h1 className="font-poppins text-3xl py-[22px] px-10 text-center">
         Add New Product
       </h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-base-200 pb-20">
-        <div className="py-5 px-10 flex flex-col md:flex-row justify-center gap-7">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="py-5 px-10 bg-base-200 pb-20"
+      >
+        <div className="flex flex-col md:flex-row justify-center gap-7">
           <div className="md:w-1/2 flex flex-col space-y-7">
-            {/* name and summery */}
+            {/* name */}
             <div className="bg-white flex flex-col rounded-xl">
               <h1 className="font-poppins text-lg font-medium p-5 border-b">
-                Name and Summary
+                Product Name
               </h1>
               <div className="px-5 py-4 flex flex-col space-y-4">
                 <div>
@@ -152,16 +259,6 @@ const AddProduct = () => {
                   <input
                     type="text"
                     {...register("name")}
-                    className="w-full mt-1 p-2 border rounded-xl bg-base-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#757575] font-poppins text-xs">
-                    Product Summary
-                  </label>
-                  <textarea
-                    type="text"
-                    {...register("summary")}
                     className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                   />
                 </div>
@@ -223,61 +320,7 @@ const AddProduct = () => {
               </div>
             </div>
 
-            {/* materials */}
-            <div className="bg-white flex flex-col border rounded-xl shadow-md">
-              <h1
-                onClick={() => handleOpenMaterial()}
-                className="font-poppins text-lg font-semibold p-5 border-b cursor-pointer transition-colors hover:text-indigo-600"
-              >
-                Materials
-              </h1>
-              {showMaterials && (
-                <div className="px-5 py-4 flex flex-col space-y-4 animate-fadeIn">
-                  <Controller
-                    name="materialSelect"
-                    control={control}
-                    render={() => (
-                      <div className="flex flex-col gap-4">
-                        {allMaterials.map((material) => (
-                          <label
-                            key={material.material_id}
-                            className="flex items-center gap-3 border border-gray-300 bg-gray-50 rounded-md px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 transition"
-                          >
-                            <input
-                              type="checkbox"
-                              value={material.material_id}
-                              checked={selectedMaterials.includes(
-                                material.material_id
-                              )}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedMaterials((prev) => [
-                                    ...prev,
-                                    material.material_id,
-                                  ]);
-                                } else {
-                                  setSelectedMaterials((prev) =>
-                                    prev.filter(
-                                      (id) => id !== material.material_id
-                                    )
-                                  );
-                                }
-                              }}
-                              className="form-checkbox h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
-                            />
-                            <span className="text-gray-800 font-medium">
-                              {material.name}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* product description */}
+            {/* box items */}
             <div className="bg-white flex flex-col rounded-xl pb-5 overflow-hidden">
               <h1 className="font-poppins text-lg font-medium p-5 border-b">
                 Box items
@@ -287,7 +330,24 @@ const AddProduct = () => {
                   {/* Add parent wrapper */}
                   <div
                     id="boxEditor"
-                    style={{ height: "200px" }}
+                    style={{ height: "232px" }}
+                    className="bg-base-200"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* highlight Items */}
+            <div className="bg-white flex flex-col rounded-xl pb-5 overflow-hidden">
+              <h1 className="font-poppins text-lg font-medium p-5 border-b">
+                Highlights
+              </h1>
+              <div className="px-5 flex flex-col space-y-4 pt-4 overflow-hidden">
+                <div className="relative border-[1px] rounded-xl overflow-hidden">
+                  {/* Add parent wrapper */}
+                  <div
+                    id="highlightEditor"
+                    style={{ height: "230px" }}
                     className="bg-base-200"
                   />
                 </div>
@@ -310,6 +370,55 @@ const AddProduct = () => {
                     className="bg-base-200"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* materials */}
+            <div className="bg-white flex flex-col border rounded-xl shadow-md">
+              <h1 className="font-poppins text-lg font-semibold p-5 border-b cursor-pointer transition-colors hover:text-indigo-600">
+                Materials
+              </h1>
+              <div className="px-5 py-2 flex flex-col space-y-4 animate-fadeIn">
+                <Controller
+                  name="materialSelect"
+                  control={control}
+                  render={() => (
+                    <div className="flex flex-col gap-4">
+                      {allMaterials.map((material) => (
+                        <label
+                          key={material.material_id}
+                          className="flex items-center gap-3 border border-gray-300 bg-gray-50 rounded-md px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 transition"
+                        >
+                          <input
+                            type="checkbox"
+                            value={material.material_id}
+                            checked={selectedMaterials.includes(
+                              material.material_id
+                            )}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedMaterials((prev) => [
+                                  ...prev,
+                                  material.material_id,
+                                ]);
+                              } else {
+                                setSelectedMaterials((prev) =>
+                                  prev.filter(
+                                    (id) => id !== material.material_id
+                                  )
+                                );
+                              }
+                            }}
+                            className="form-checkbox h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
+                          />
+                          <span className="text-gray-800 font-medium">
+                            {material.name}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                />
               </div>
             </div>
 
@@ -365,7 +474,7 @@ const AddProduct = () => {
                       </label>
                       <input
                         type="number"
-                        {...register("boxHeight", { min: 0.01 })}
+                        {...register("boxHeight")}
                         step="0.01"
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                         placeholder="Enter height"
@@ -379,7 +488,7 @@ const AddProduct = () => {
                       </label>
                       <input
                         type="number"
-                        {...register("boxWidth", { min: 0.01 })}
+                        {...register("boxWidth")}
                         step="0.01"
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                         placeholder="Enter width"
@@ -393,7 +502,7 @@ const AddProduct = () => {
                       </label>
                       <input
                         type="number"
-                        {...register("boxDepth", { min: 0.01 })}
+                        {...register("boxDepth")}
                         step="0.01"
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                         placeholder="Enter depth"
@@ -407,7 +516,7 @@ const AddProduct = () => {
                       </label>
                       <input
                         type="number"
-                        {...register("boxWeight", { min: 0.01 })}
+                        {...register("boxWeight")}
                         step="0.01"
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                         placeholder="Enter weight"
@@ -420,7 +529,7 @@ const AddProduct = () => {
                         Dimension Unit
                       </label>
                       <select
-                        {...register("boxDimensionUnit", { required: true })}
+                        {...register("boxDimensionUnit")}
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                       >
                         <option value="INCH">INCH</option>
@@ -434,7 +543,7 @@ const AddProduct = () => {
                         Weight Unit
                       </label>
                       <select
-                        {...register("boxWeightUnit", { required: true })}
+                        {...register("boxWeightUnit")}
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                       >
                         <option value="KG">KG</option>
@@ -460,7 +569,7 @@ const AddProduct = () => {
                       </label>
                       <input
                         type="number"
-                        {...register("productHeight", { min: 0.01 })}
+                        {...register("productHeight")}
                         step="0.01"
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                         placeholder="Enter height"
@@ -474,7 +583,7 @@ const AddProduct = () => {
                       </label>
                       <input
                         type="number"
-                        {...register("productWidth", { min: 0.01 })}
+                        {...register("productWidth")}
                         step="0.01"
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                         placeholder="Enter width"
@@ -488,7 +597,7 @@ const AddProduct = () => {
                       </label>
                       <input
                         type="number"
-                        {...register("productDepth", { min: 0.01 })}
+                        {...register("productDepth")}
                         step="0.01"
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                         placeholder="Enter depth"
@@ -502,7 +611,7 @@ const AddProduct = () => {
                       </label>
                       <input
                         type="number"
-                        {...register("productWeight", { min: 0.01 })}
+                        {...register("productWeight")}
                         step="0.01"
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                         placeholder="Enter weight"
@@ -515,9 +624,7 @@ const AddProduct = () => {
                         Dimension Unit
                       </label>
                       <select
-                        {...register("productDimensionUnit", {
-                          required: true,
-                        })}
+                        {...register("productDimensionUnit")}
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                       >
                         <option value="INCH">INCH</option>
@@ -531,7 +638,7 @@ const AddProduct = () => {
                         Weight Unit
                       </label>
                       <select
-                        {...register("productWeightUnit", { required: true })}
+                        {...register("productWeightUnit")}
                         className="w-full mt-1 p-2 border rounded-xl bg-base-200"
                       >
                         <option value="KG">KG</option>
@@ -601,12 +708,14 @@ const AddProduct = () => {
             </div>
           </div>
         </div>
-        <button
-          type="submit"
-          className="bg-[#00C20D] ml-10 text-white rounded-md px-4 py-3 font-normal text-base font-roboto"
-        >
-          + Add Product
-        </button>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="bg-[#00C20D] mt-7 text-white rounded-md px-4 py-3 font-normal text-base font-roboto"
+          >
+            Add Product
+          </button>
+        </div>
       </form>
     </div>
   );

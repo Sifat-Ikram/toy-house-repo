@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useForm } from "react-hook-form";
-import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import img from "../../../assets/sign/sign_in.webp";
 import { useLocation, useNavigate } from "react-router-dom";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
+import { AuthContext } from "../../../provider/AuthProvider";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,13 +15,14 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const { setUser } = useContext(AuthContext);
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem("rememberedEmail");
+    const savedEmail = localStorage.getItem("rememberedUsername");
     const savedPassword = localStorage.getItem("rememberedPassword");
 
     if (savedEmail && savedPassword) {
-      setValue("email", savedEmail);
+      setValue("username", savedEmail);
       setValue("password", savedPassword);
       setRememberMe(true);
     }
@@ -30,38 +32,43 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleGoogleRegister = () => {
-    navigate(location?.state ? location.state : "/");
-  };
-
+  // Inside onSubmit function, replacing sessionStorage with Cookies
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      // Simulating the login process
       if (rememberMe) {
-        localStorage.setItem("rememberedEmail", data.username);
+        sessionStorage.setItem("rememberedUsername", data.username);
+        sessionStorage.setItem("rememberedPassword", data.password);
+        localStorage.setItem("rememberedUsername", data.username);
         localStorage.setItem("rememberedPassword", data.password);
       } else {
-        localStorage.removeItem("rememberedEmail");
+        sessionStorage.removeItem("rememberedUsername");
+        sessionStorage.removeItem("rememberedPassword");
+        localStorage.removeItem("rememberedUsername");
         localStorage.removeItem("rememberedPassword");
       }
-      const payload = {
-        username: data.username,
-        password: data.password,
-      };
 
       const response = await axiosPublic.post(
-        `/api/v1/open/users/login?username=${data.username}&password=${data.password}&request-id=1234`,
-        payload
+        `/api/v1/open/users/login?username=${data.username}&password=${data.password}&request-id=1234`
       );
-      console.log("Registration Successful:", response.data);
 
-      setError("");
-      navigate(location?.state ? location.state : "/");
-      console.log(data);
+      if (response.data?.accessToken) {
+        // Store token in a cookie
+        sessionStorage.setItem("userAccess", response.data?.accessToken);
+        localStorage.setItem("userAccess", response.data?.accessToken);
+        sessionStorage.setItem("userRefresh", response.data?.refreshToken);
+        localStorage.setItem("userRefresh", response.data?.refreshToken);
+        const expiryTime = Date.now() + response.data.expiresIn * 1000;
+        localStorage.setItem("tokenExpiry", expiryTime);
+        sessionStorage.setItem("tokenExpiry", expiryTime);
+        setUser(response.data?.accessToken);
+        setError("");
+        navigate(location?.state ? location.state : "/");
+      } else {
+        throw new Error("Something went wrong");
+      }
     } catch (error) {
       console.log(error.message);
-
       setError("Login failed. Please try again.");
     } finally {
       setLoading(false);
@@ -74,10 +81,10 @@ const Login = () => {
   };
 
   return (
-    <div className="w-5/6 mx-auto min-h-screen py-8">
-      <div className="flex items-center flex-col lg:flex-row gap-20">
+    <div className="w-11/12 sm:w-5/6 mx-auto min-h-screen sm:py-8">
+      <div className="flex md:items-center flex-col lg:flex-row sm:gap-8 md:gap-14 lg:gap-20">
         {/* Image Section */}
-        <div className="lg:w-2/5 lg:ml-10">
+        <div className="lg:w-2/5 lg:ml-10 max-sm:hidden">
           <img
             src={img}
             className="w-3/4 mx-auto h-3/5 lg:w-[500px] lg:h-[500px] lg:mx-0 lg:mt-16"
@@ -86,7 +93,7 @@ const Login = () => {
         </div>
 
         {/* Form Section */}
-        <div className="lg:flex-1 flex flex-col justify-center items-center gap-5 px-8 py-10 w-full max-w-xl md:shadow-2xl bg-white rounded-lg">
+        <div className="sm:flex-1 flex flex-col justify-center items-center gap-5 p-5 w-full md:shadow-2xl bg-white rounded-lg">
           {/* Heading */}
           <div className="text-center mb-1 lg:mb-3">
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#03b4f6] tracking-tight leading-tight mb-1">
@@ -106,18 +113,16 @@ const Login = () => {
             {/* Email Input */}
             <div>
               <label className="label">
-                <span className="label-text text-gray-600">
-                  Email or Username
-                </span>
+                <span className="label-text text-gray-600">Phone Number</span>
               </label>
               <input
                 name="username"
                 type="text"
                 {...register("username", {
-                  required: "username is required",
+                  required: "Phone Number is required",
                 })}
-                placeholder="Enter your email or username"
-                className="input input-bordered w-full"
+                placeholder="Enter your Phone Number"
+                className="input input-bordered w-full dark:bg-white"
               />
             </div>
 
@@ -132,7 +137,7 @@ const Login = () => {
                 aria-label="Password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                className="input input-bordered w-full"
+                className="input input-bordered w-full dark:bg-white"
               />
               <div
                 className="absolute right-3 bottom-3 cursor-pointer text-gray-500"
@@ -187,16 +192,6 @@ const Login = () => {
               </a>{" "}
               here
             </h1>
-          </div>
-
-          {/* Google Login */}
-          <div className="w-full">
-            <button
-              onClick={handleGoogleRegister}
-              className="w-11/12 mx-auto flex justify-center items-center md:gap-3 lg:gap-5 bg-white border border-[#03b4f6] text-[#03b4f6] font-semibold py-3 rounded-lg shadow-md hover:bg-[#03b4f6] hover:text-white transition-all duration-300 ease-in-out transform hover:scale-105"
-            >
-              <FaGoogle className="mr-2" /> Login with Google
-            </button>
           </div>
         </div>
       </div>

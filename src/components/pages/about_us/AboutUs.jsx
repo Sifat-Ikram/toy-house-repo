@@ -1,62 +1,46 @@
-import { FaRocket, FaHandsHelping, FaRegSmileBeam } from 'react-icons/fa';
+import { useEffect } from "react";
+import { FaPhone, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 
 const AboutUs = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   return (
-    <div className="bg-gray-50 py-10">
-      <div className="container mx-auto px-5">
-        <h1 className="text-4xl font-bold text-center text-red-600 mb-8">
-          About Toy House
-        </h1>
-        <p className="text-center text-gray-700 text-lg mb-8">
-          At Toy House, we believe in the magic of childhood and the joy of
-          imagination. Our mission is to bring smiles to young faces and foster
-          creativity through a wide range of toys that are not only fun but
-          educational.
-        </p>
+    <div className="py-12 px-6 md:w-4/5 w-11/12 mx-auto dark:bg-white dark:text-black">
+      <h1 className="text-xl md:text-2xl lg:text-3xl font-poppins font-bold text-left mb-3 sm:mb-4 md:mb-6">About Us</h1>
+      <p className="text-sm sm:text-base md:text-lg font-roboto leading-relaxed text-left">
+        <strong className="font-poppins">Toy House</strong> is a service-oriented e-commerce business
+        dedicated to bringing you the best quality baby toys and products with
+        world-class customer support. Our mission is to make shopping for
+        children's toys easy, convenient, and enjoyable from the comfort of your
+        home.
+      </p>
 
-        <div className="grid gap-10 md:grid-cols-3">
-          {/* Mission Section */}
-          <div className="bg-white shadow-lg rounded-lg p-6 text-center">
-            <div className="text-red-500 text-6xl mb-4">
-              <FaRocket />
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-              Our Mission
-            </h2>
-            <p className="text-gray-600">
-              To inspire young minds with toys that stimulate creativity,
-              learning, and fun while ensuring the highest safety standards.
-            </p>
-          </div>
+      <p className="text-sm sm:text-base md:text-lg font-roboto leading-relaxed mt-4 text-left">
+        At Toy House, we utilize the power of the internet to provide a seamless
+        shopping experience, ensuring that busy parents and guardians can find
+        the perfect toys for their little ones without any hassle. We currently
+        deliver across Bangladesh, and customers outside Bangladesh can also
+        place orders with a valid Bangladeshi shipping address.
+      </p>
 
-          {/* Vision Section */}
-          <div className="bg-white shadow-lg rounded-lg p-6 text-center">
-            <div className="text-red-500 text-6xl mb-4">
-              <FaHandsHelping />
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-              Our Vision
-            </h2>
-            <p className="text-gray-600">
-              To be the most beloved toy store by parents and children,
-              creating a legacy of joy, quality, and trust in every home.
-            </p>
-          </div>
+      <p className="text-sm sm:text-base md:text-lg font-roboto leading-relaxed mt-4 text-left">
+        Enjoy a smooth and secure shopping experience with Toy House, where
+        quality and customer satisfaction come first.
+      </p>
 
-          {/* Values Section */}
-          <div className="bg-white shadow-lg rounded-lg p-6 text-center">
-            <div className="text-red-500 text-6xl mb-4">
-              <FaRegSmileBeam />
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-              Our Values
-            </h2>
-            <p className="text-gray-600">
-              We prioritize safety, inclusivity, and sustainability while
-              bringing the joy of play to children of all ages and
-              backgrounds.
-            </p>
-          </div>
+      <div className="mt-8 border-t pt-6">
+        <h2 className="text-2xl font-semibold text-left mb-4 font-poppins">Contact Us</h2>
+        <div className="flex flex-col items-start gap-4 font-roboto">
+          <p className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
+            <FaPhone /> <span>01626809609</span>
+          </p>
+          <p className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
+            <FaEnvelope /> <span>kuswarkhan2018@gmail.com</span>
+          </p>
+          <p className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
+            <FaMapMarkerAlt /> <span>Toy House, Level-1, A1, 37C</span>
+          </p>
         </div>
       </div>
     </div>

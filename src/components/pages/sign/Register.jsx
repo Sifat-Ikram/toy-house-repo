@@ -1,7 +1,7 @@
 // import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import img from "../../../assets/sign/sign_up.webp";
 import { useLocation, useNavigate } from "react-router-dom";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
@@ -10,29 +10,13 @@ const Register = () => {
   const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
   const location = useLocation();
-  const { register, handleSubmit, setValue } = useForm();
+  const { register, handleSubmit } = useForm();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-
-  useEffect(() => {
-    const savedEmail = localStorage.getItem("rememberedEmail");
-    const savedPassword = localStorage.getItem("rememberedPassword");
-
-    if (savedEmail && savedPassword) {
-      setValue("email", savedEmail);
-      setValue("password", savedPassword);
-      setRememberMe(true);
-    }
-  }, [setValue]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
-  };
-
-  const handleGoogleRegister = () => {
-    navigate(location?.state ? location.state : "/");
   };
 
   const onSubmit = async (data) => {
@@ -45,19 +29,12 @@ const Register = () => {
     setError("");
 
     const payload = {
+      name: data.name,
       username: data.username,
       email: data.email,
-      phone_number: data.phone,
+      phone_number: data.username,
       password: data.password,
     };
-
-    if (rememberMe) {
-      localStorage.setItem("rememberedEmail", data.username);
-      localStorage.setItem("rememberedPassword", data.password);
-    } else {
-      localStorage.removeItem("rememberedEmail");
-      localStorage.removeItem("rememberedPassword");
-    }
 
     try {
       const response = await axiosPublic.post(
@@ -67,7 +44,7 @@ const Register = () => {
       console.log("Registration Successful:", response.data);
 
       // Redirect user after successful registration
-      const path = location.state?.from?.pathname || "/";
+      const path = location.state?.from?.pathname || "/login";
       navigate(path);
     } catch (err) {
       console.error("Error during registration:", err);
@@ -80,9 +57,9 @@ const Register = () => {
   };
 
   return (
-    <div className="w-5/6 mx-auto min-h-screen py-8">
-      <div className="flex flex-col lg:flex-row gap-20">
-        <div className="lg:w-2/5 lg:ml-10">
+    <div className="w-11/12 sm:w-5/6 mx-auto min-h-screen py-8">
+      <div className="flex md:items-center flex-row lg:gap-20">
+        <div className="lg:w-2/5 lg:ml-10 max-sm:hidden">
           <img
             src={img}
             className="w-3/4 mx-auto h-3/5 lg:w-[500px] lg:h-[500px] lg:mx-0 lg:mt-16"
@@ -99,6 +76,19 @@ const Register = () => {
             onSubmit={handleSubmit(onSubmit)}
             className="w-11/12 mx-auto space-y-2"
           >
+          <div>
+            <label className="label">
+              <span className="label-text text-gray-600">Phone Number</span>
+            </label>
+            <input
+              name="username"
+              type="text"
+              {...register("username")}
+              placeholder="Enter your phone number"
+              className="input input-bordered w-full dark:bg-white"
+              required
+            />
+          </div>
             <div>
               <label className="label">
                 <span className="label-text text-gray-600">Full Name</span>
@@ -108,20 +98,7 @@ const Register = () => {
                 {...register("name")}
                 type="text"
                 placeholder="Enter your full name"
-                className="input input-bordered w-full"
-              />
-            </div>
-            <div>
-              <label className="label">
-                <span className="label-text text-gray-600">Username</span>
-              </label>
-              <input
-                name="username"
-                type="text"
-                {...register("username")}
-                placeholder="Enter your username"
-                className="input input-bordered w-full"
-                required
+                className="input input-bordered w-full dark:bg-white"
               />
             </div>
             <div>
@@ -133,20 +110,7 @@ const Register = () => {
                 type="email"
                 {...register("email")}
                 placeholder="Enter your email"
-                className="input input-bordered w-full"
-                required
-              />
-            </div>
-            <div>
-              <label className="label">
-                <span className="label-text text-gray-600">Phone Number</span>
-              </label>
-              <input
-                name="phone"
-                type="number"
-                {...register("phone")}
-                placeholder="Enter your phone number"
-                className="input input-bordered w-full"
+                className="input input-bordered w-full dark:bg-white"
                 required
               />
             </div>
@@ -159,7 +123,7 @@ const Register = () => {
                 type={showPassword ? "text" : "password"}
                 {...register("password", { required: true })}
                 placeholder="Enter your password"
-                className="input input-bordered w-full"
+                className="input input-bordered w-full dark:bg-white"
               />
               <div
                 className="absolute right-3 bottom-3 cursor-pointer text-gray-500"
@@ -168,20 +132,6 @@ const Register = () => {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </div>
             </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
-                className="checkbox"
-              />
-              <label htmlFor="rememberMe" className="ml-2 text-gray-600">
-                Remember me
-              </label>
-            </div>
-
             <div className="w-full">
               <button
                 aria-label="Register"
@@ -202,14 +152,6 @@ const Register = () => {
               {error && <p className="text-red-600">{error}</p>}
             </div>
           </form>
-          <div className="w-full">
-            <button
-              onClick={handleGoogleRegister}
-              className="w-11/12 mx-auto flex justify-center items-center md:gap-3 lg:gap-5 bg-white border border-[#03b4f6] text-[#03b4f6] font-semibold py-3 rounded-lg shadow-md hover:bg-[#03b4f6] hover:text-white transition-all duration-300 ease-in-out transform hover:scale-105"
-            >
-              <FaGoogle className="mr-2" /> Register with Google
-            </button>
-          </div>
         </div>
       </div>
     </div>

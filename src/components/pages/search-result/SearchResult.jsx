@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import useNewProducts from "../../hooks/useNewProducts";
-import { Rating } from "@smastrom/react-rating";
-import "@smastrom/react-rating/style.css";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import SearchFilters from "./SearchFilters";
+import Card from "../../hooks/Card";
+import useAllProducts from "../../hooks/useAllProducts";
 
 const SearchResult = () => {
   const { id } = useParams();
-  const [newProducts, refetch, isLoading, error] = useNewProducts();
+  const [allProducts, refetch, isLoading, error] = useAllProducts();
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedAge, setSelectedAge] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -16,33 +15,40 @@ const SearchResult = () => {
   const [filtersDrawerVisible, setFiltersDrawerVisible] = useState(false);
   const [sortOrder, setSortOrder] = useState("");
   const [page, setPage] = useState(0);
-  const [allProducts, setAllProducts] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
 
   const normalizedId = id?.toLowerCase();
 
   useEffect(() => {
-    const searchTerm = newProducts?.filter(
-      (product) => product?.name.toLowerCase() === normalizedId
-    );
-    if (searchTerm.length > 0) {
-      setAllProducts((prevProducts) => [...prevProducts, ...searchTerm]);
-      setIsFetching(false);
-    }
-  }, [newProducts, normalizedId]);
+    window.scrollTo(0, 0); // Scroll to the top of the page
+  }, []);
+
+  useEffect(() => {
+    if (!allProducts) return;
+
+    const matchedProducts = allProducts.filter((product) => {
+      return product?.product_name?.toLowerCase().includes(normalizedId);
+    });
+
+    setSelectedProducts(matchedProducts); // Update the state with filtered products
+  }, [allProducts, normalizedId]);
 
   useEffect(() => {
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } =
         document.documentElement;
+
       if (
         scrollTop + clientHeight >= scrollHeight - 100 &&
         !isLoading &&
         !isFetching
       ) {
+        setIsFetching(true); // Set before making request
         setPage((prevPage) => prevPage + 1);
       }
     };
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isLoading, isFetching]);
@@ -70,36 +76,27 @@ const SearchResult = () => {
     );
   }
 
-  const filteredProducts = useMemo(() => {
-    return allProducts
-      .filter((prod) => {
-        const matchesCategory =
-          !selectedCategory || prod.category?.name === selectedCategory;
-        const matchesBrand =
-          !selectedBrand || prod.brand?.name === selectedBrand;
-        const matchesAge =
-          !selectedAge ||
-          (prod.minimum_age_range <= selectedAge &&
-            selectedAge <= prod.maximum_age_range);
-        const matchesPrice =
-          prod.base_price >= priceRange[0] && prod.base_price <= priceRange[1];
-        return matchesCategory && matchesAge && matchesPrice && matchesBrand;
-      })
-      .sort((a, b) => {
-        return sortOrder === "highToLow"
-          ? b.base_price - a.base_price
-          : sortOrder === "lowToHigh"
-          ? a.base_price - b.base_price
-          : 0;
-      });
-  }, [
-    allProducts,
-    selectedCategory,
-    selectedAge,
-    priceRange,
-    selectedBrand,
-    sortOrder,
-  ]);
+  const filteredProducts = selectedProducts
+    ?.filter((prod) => {
+      const matchesBrand =
+        selectedBrand === "" || prod?.brand_name === selectedBrand;
+      const matchesCategory =
+        selectedCategory === "" || prod?.category_name === selectedCategory;
+      const matchesAge =
+        !selectedAge || // If no age is selected, show all products
+        (selectedAge[0] <= prod?.maximum_age_range &&
+          selectedAge[1] >= prod?.minimum_age_range);
+      const matchesPrice =
+        prod.selling_price >= priceRange[0] &&
+        prod.selling_price <= priceRange[1];
+
+      return matchesBrand && matchesAge && matchesPrice && matchesCategory;
+    })
+    .sort((a, b) => {
+      if (sortOrder === "highToLow") return b.selling_price - a.selling_price;
+      if (sortOrder === "lowToHigh") return a.selling_price - b.selling_price;
+      return 0;
+    });
 
   const handleOutsideClick = (e) => {
     if (e.target.id === "overlay") {
@@ -118,16 +115,12 @@ const SearchResult = () => {
     setPage(0);
   };
 
-  const handleAddToCart = (product) => {
-    console.log(product);
-  };
-
   if (error) {
     return <div>Error loading products: {error.message}</div>;
   }
 
   return (
-    <div>
+    <div className="dark:text-black dark:bg-white">
       <div className="drawer drawer-end">
         <input id="drawer-toggle" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content">
@@ -141,17 +134,17 @@ const SearchResult = () => {
               to inspire learning and laughter in every child.
             </p>
           </div>
-          <div className="w-full sm:w-11/12 mx-auto max-sm:px-2 flex flex-wrap justify-between items-center my-3 px-4 py-2 bg-base-200">
+          <div className="w-full max-sm:px-2 dark:bg-white flex flex-wrap justify-between items-center my-3 px-4 py-2 bg-base-200">
             {/* Filters Toggle Button */}
             <div
               onClick={() => setFiltersVisible(!filtersVisible)}
-              className="hidden sm:block text-sm sm:text-base md:text-lg font-semibold text-gray-800 hover:text-gray-600 px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
+              className="hidden sm:block text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-800 hover:text-gray-600 px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
             >
               {filtersVisible ? "Hide Filters" : "Show Filters"}
             </div>
             <div
               onClick={() => setFiltersDrawerVisible(!filtersDrawerVisible)}
-              className="block sm:hidden text-sm sm:text-base md:text-lg font-semibold text-gray-800 hover:text-gray-600 px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
+              className="block sm:hidden text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-800 hover:text-gray-600 px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
             >
               {!filtersDrawerVisible ? "Show Filters" : "Hide Filters"}
             </div>
@@ -185,30 +178,39 @@ const SearchResult = () => {
 
             {/* Sort By Section */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <h1 className="text-sm sm:text-base md:text-lg font-semibold text-gray-700">
+              <h1 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold">
                 Sort By:
               </h1>
               <select
-                className="p-1 md:p-2 rounded-lg bg-base-100 border border-gray-200 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="p-1 md:p-2 rounded-lg bg-base-100 dark:text-black border dark:bg-white border-gray-200 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-gray-300"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
               >
-                <option value="" className="text-gray-700">
+                <option
+                  value=""
+                  className="text-gray-700 text-xs sm:text-sm md:text-base lg:text-lg dark:text-black"
+                >
                   Featured
                 </option>
-                <option value="highToLow" className="text-gray-700">
+                <option
+                  value="highToLow"
+                  className="text-gray-700 text-xs sm:text-sm md:text-base lg:text-lg dark:text-black"
+                >
                   High to Low
                 </option>
-                <option value="lowToHigh" className="text-gray-700">
+                <option
+                  value="lowToHigh"
+                  className="text-gray-700 text-xs sm:text-sm md:text-base lg:text-lg dark:text-black"
+                >
                   Low to High
                 </option>
               </select>
             </div>
           </div>
 
-          <div className="w-11/12 mx-auto flex justify-center gap-1 sm:gap-3 md:gap-5">
+          <div className="max-sm:px-2 flex justify-center gap-1 sm:gap-3 md:gap-5">
             {filtersVisible && (
-              <div className="hidden sm:flex flex-col bg-base-100 w-full sm:w-1/3 md:w-1/4 py-6 space-y-4 px-3 md:px-5 lg:shadow-lg">
+              <div className="hidden sm:flex flex-col bg-base-100 dark:text-black dark:bg-white w-full sm:w-1/3 md:w-1/4 py-6 space-y-4 px-3 md:px-5 lg:shadow-lg">
                 <SearchFilters
                   selectedBrand={selectedBrand}
                   setSelectedBrand={setSelectedBrand}
@@ -221,13 +223,13 @@ const SearchResult = () => {
                 />
               </div>
             )}
-            <div className="flex-1">
+            <div className="flex-1 max-sm:px-1">
               {filteredProducts.length ? (
-                <div>
+                <div className="max-sm:px-1">
                   <div className="flex items-center space-x-2">
                     {/* Render selected brand */}
                     {selectedCategory.length > 0 && (
-                      <div className="flex items-center bg-gray-200 text-sm px-[10px] py-1 rounded-full">
+                      <div className="flex items-center text-sm px-[10px] py-1 rounded-full">
                         {selectedCategory}
                         <button
                           onClick={clearCategory}
@@ -238,7 +240,7 @@ const SearchResult = () => {
                       </div>
                     )}
                     {selectedCategory.length > 0 && (
-                      <div className="flex items-center bg-gray-200 text-sm px-[10px] py-1 rounded-full">
+                      <div className="flex items-center text-sm px-[10px] py-1 rounded-full">
                         {selectedBrand}
                         <button
                           onClick={clearBrand}
@@ -253,58 +255,16 @@ const SearchResult = () => {
                     {selectedCategory && (
                       <button
                         onClick={clearAll}
-                        className="flex items-center bg-gray-200 text-sm px-[10px] py-1 rounded-full"
+                        className="flex items-center text-sm px-[10px] py-1 rounded-full"
                       >
                         Clear All
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 my-5">
                     {filteredProducts.map((product) => (
-                      <div
-                        key={product.id}
-                        className="w-full product-cart rounded-md sm:rounded-lg md:rounded-xl lg:rounded-3xl pb-5 flex flex-col overflow-hidden group"
-                      >
-                        <Link to={`/productDetail/${product.id}`}>
-                          <img
-                            src={product?.display_image_url}
-                            alt={product?.product_name}
-                            className="bg-base-200 h-[300px] sm:h-[250px] md:h-[280px] lg:h-[320px] rounded-t-md sm:rounded-t-lg md:rounded-t-xl lg:rounded-t-3xl w-full transition-transform duration-300 group-hover:scale-105"
-                          />
-                          <div className="flex flex-col justify-start space-y-1 pt-4 lg:pt-5">
-                            <p className="text-[13px] font-roboto">
-                              {product?.category?.name || " "}
-                            </p>
-                            <h2 className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl font-poppins text-[#3E3E3E] sm:min-h-14 md:min-h-14 lg:min-h-16">
-                              {product?.product_name || "Product Name"}
-                            </h2>
-                            <p className="text-sm font-roboto min-h-10">
-                              {product.summary}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <Rating
-                                style={{ maxWidth: 100, color: "#dd350b" }}
-                                value={product?.rating}
-                                readOnly
-                              />
-                              <span className="text-sm text-gray-700 dark:text-gray-300">
-                                {product?.rating}
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                        <div className="flex items-center mt-2 gap-2">
-                          <button
-                            onClick={() => handleAddToCart(product)}
-                            aria-label={`Add ${product?.product_name} to cart`}
-                            className="w-fit md:w-1/2 max-md:px-6 py-2 sm:py-[6px] md:py-2 rounded-md sm:rounded-lg md:rounded-xl lg:rounded-3xl bg-[#317ff3] hover:bg-[#31b2f3] text-sm lg:text-base font-semibold text-white transition-all cursor-pointer"
-                          >
-                            Add to Cart
-                          </button>
-                          <p className="font-bold text-base sm:text-sm md:text-base lg:text-lg text-[#3E3E3E]">
-                            Tk {product?.selling_price}
-                          </p>
-                        </div>
+                      <div key={product.id}>
+                        <Card product={product} />
                       </div>
                     ))}
                   </div>

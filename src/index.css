@@ -1,15 +1,20 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 .font-poppins {
   font-family: "Poppins", sans-serif;
+}
+
+.font-inter {
+  font-family: "Inter", serif;
 }
 
 .font-roboto {
   font-family: "Roboto", sans-serif;
 }
 
-.buttons{
+.buttons {
   background-color: #317ff3;
   font-size: 18px;
   font-weight: 500;
@@ -20,7 +25,7 @@
 }
 
 
-.buttons:hover{
+.buttons:hover {
   background-color: #31b2f3;
   color: white;
   cursor: pointer;
@@ -41,6 +46,63 @@
   height: auto !important;
 }
 
+/* Custom styles for the confirm button */
+.swal2-confirm-btn {
+  background-color: #31b2f3 !important;
+  /* Light blue for the confirm button */
+  color: white !important;
+  /* White text */
+  border: none !important;
+  font-weight: bold !important;
+}
+
+/* Custom styles for the cancel button */
+.swal2-cancel-btn {
+  background-color: red !important;
+  /* Red for the cancel button */
+  color: white !important;
+  /* White text */
+  border: none !important;
+  font-weight: bold !important;
+}
+
+.btn-category {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+/* Media query for 475px (larger mobile devices) */
+@media screen and (min-width: 200px) {
+  .cat-width {
+    width: 210px;
+    margin-top: -6px;
+  }
+
+  .cat-image {
+    height: 25px;
+    width: 25px;
+  }
+
+  .cat-text {
+    font-size: 8px;
+  }
+
+  .banner-welcome {
+    font-size: 23px;
+  }
+
+  .banner-title {
+    font-size: 20px;
+  }
+
+  .banner-text {
+    font-size: 14px;
+  }
+
+  .banner-button {
+    font-size: 10px;
+  }
+}
 
 /* Media query for 475px (larger mobile devices) */
 @media screen and (min-width: 375px) {
@@ -48,40 +110,65 @@
     padding-left: 20px;
     padding-right: 20px;
   }
-  .cat-submenu {
-    width: 220px;
+
+  .cat-width {
+    width: 240px;
     margin-top: -6px;
-    padding: 10px;
   }
+
   .cat-image {
     height: 25px;
     width: 25px;
   }
-  .cat-text{
-    font-size: 8px;
+
+  .cat-text {
+    font-size: 9px;
   }
-  .big-image{
+
+  .banner-welcome {
+    font-size: 20px;
+  }
+
+  .banner-title {
+    font-size: 18px;
+  }
+
+  .banner-text {
+    font-size: 13px;
+  }
+
+  .banner-button {
+    font-size: 10px;
+  }
+
+  .big-image {
     height: 150px;
   }
-  .small-image{
+
+  .small-image {
     height: 45px;
     width: 45px;
   }
-  .buttons{
+
+  .buttons {
     padding: 8px 10px;
     font-size: 14px;
     border-radius: 6px;
   }
+
   .table-content {
     display: none;
   }
+
   .image-height {
     height: 30px;
     width: 30px;
   }
+
   .productCart {
     padding: 0px 30px;
   }
+
   .product-cart {
     width: 100%;
   }
@@ -92,79 +179,136 @@
     padding-left: 30px;
     padding-right: 30px;
   }
-  .cat-submenu {
-    width: 275px;
+
+  .cat-width {
+    width: 270px;
     margin-top: -6px;
   }
+
   .cat-image {
-    height: 35px;
-    width: 35px;
+    height: 28px;
+    width: 28px;
   }
-  .cat-text{
+
+  .cat-text {
+    font-size: 9px;
+  }
+
+  .banner-welcome {
+    font-size: 22px;
+  }
+
+  .banner-title {
+    font-size: 20px;
+  }
+
+  .banner-text {
     font-size: 12px;
   }
-  .big-image{
+
+  .banner-button {
+    font-size: 12px;
+  }
+
+  .big-image {
     height: 220px;
   }
-  .small-image{
+
+  .small-image {
     height: 60px;
     width: 60px;
   }
-  .buttons{
+
+  .buttons {
     padding: 8px 10px;
     font-size: 14px;
   }
+
   .table-content {
     display: none;
   }
+
   .image-height {
     height: 40px;
     width: 40px;
   }
+
   .productCart {
     padding: 0px 25px;
   }
+
   .product-cart {
     width: 180px;
   }
 }
+
 @media screen and (min-width: 540px) {
   .btn-category {
     padding-left: 40px;
     padding-right: 40px;
   }
+
   .cat-submenu {
     width: 350px;
     margin-top: -6px;
   }
+
+  .cat-width {
+    width: 340px;
+  }
+
   .cat-image {
     height: 42px;
     width: 42px;
   }
-  .cat-text{
+
+  .cat-text {
     font-size: 12px;
   }
-  .big-image{
+
+  .banner-welcome {
+    font-size: 25px;
+  }
+
+  .banner-title {
+    font-size: 22px;
+  }
+
+  .banner-text {
+    font-size: 17px;
+  }
+
+  .banner-button {
+    font-size: 12px;
+  }
+
+  .big-image {
     height: 370px;
   }
-  .small-image{
+
+  .small-image {
     height: 75px;
     width: 75px;
   }
-  .buttons{
+
+  .buttons {
     padding: 10px 14px;
     font-size: 15px;
   }
+
   .table-content {
     display: flex;
   }
+
   .image-height {
     height: 60px;
     width: 60px;
   }
+
   .productCart {
     padding: 0px 25px;
   }
+
   .product-cart {
     width: 200px;
   }

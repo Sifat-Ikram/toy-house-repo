@@ -3,7 +3,6 @@ import axios from "axios";
 import useColor from "../../hooks/useColor";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
 import Swal from "sweetalert2";
-import useImage from "../../hooks/useImage";
 
 const image_hosting_key = import.meta.env.VITE_image_hosting_key;
 const image_hosting_api = `https://api.imgbb.com/1/upload?key=${image_hosting_key}`;
@@ -16,7 +15,6 @@ const UpdateInventory = ({ inventory, onClose, inventoryRefetch }) => {
   const [updateFields, setUpdateFields] = useState({
     color_name: inventory.color || "",
     quantity: inventory.quantity || 0,
-    show_available_quantity: inventory.show_available_quantity || 0,
     base_price: inventory.base_price || 0,
     selling_price: inventory.selling_price || 0,
     applicable_tax_percent: inventory.applicable_tax_percent || 0,
@@ -32,7 +30,7 @@ const UpdateInventory = ({ inventory, onClose, inventoryRefetch }) => {
         color_name: colors[0].name,
       }));
     }
-  }, [colors]);
+  }, [colors, updateFields]);
 
   // Helper function to generate a random alphanumeric ID
   const generateImageId = () => {
@@ -62,7 +60,11 @@ const UpdateInventory = ({ inventory, onClose, inventoryRefetch }) => {
         }
       } catch (error) {
         console.error(error.message);
-        alert("Image upload failed. Please try again");
+        Swal.fire({
+          icon: "error",
+          title: "Image upload failed",
+          text: "There was an error uploading the image. Please try again.",
+        });
       }
     }
 
@@ -77,15 +79,13 @@ const UpdateInventory = ({ inventory, onClose, inventoryRefetch }) => {
     );
   };
 
-  const handleSaveImages = async () => {
+  const handleSaveImages = async (id) => {
     const formattedImages = {
-      product_inventory_id: inventory?.inventory_id,
-      images: uploadedImages,
+      id: id,
     };
-    console.log(formattedImages);
     try {
-      const response = await axiosPublic.post(
-        "api/v1/admin/product/inventory/add/images?request-id=1234",
+      const response = await axiosPublic.put(
+        `api/v1/admin/product/inventory/set/display/image?image-id=${id}&request-id=1234`,
         formattedImages
       );
       console.log(response.data);
@@ -125,7 +125,6 @@ const UpdateInventory = ({ inventory, onClose, inventoryRefetch }) => {
       product_inventory_id: inventory?.inventory_id,
       inventory: {
         quantity: updateFields.quantity,
-        show_available_quantity: updateFields.show_available_quantity,
         mark_unavailable: updateFields.mark_availability,
         base_price: updateFields.base_price,
         selling_price: updateFields.selling_price,
@@ -146,7 +145,7 @@ const UpdateInventory = ({ inventory, onClose, inventoryRefetch }) => {
         Swal.fire({
           icon: "success",
           title: "Successful!",
-          text: "Inventory saved successfully",
+          text: "Inventory updated successfully",
         });
         inventoryRefetch(); // Refetch data after update
         onClose(); // Close edit mode after save
@@ -168,7 +167,7 @@ const UpdateInventory = ({ inventory, onClose, inventoryRefetch }) => {
     setUpdateFields({
       color_name: inventory.color || "",
       quantity: inventory.quantity || 0,
-      show_available_quantity: inventory.show_available_quantity || 0,
+      sold_quantity: inventory.sold_quantity || 0,
       base_price: inventory.base_price || 0,
       selling_price: inventory.selling_price || 0,
       applicable_tax_percent: inventory.applicable_tax_percent || 0,
@@ -179,117 +178,134 @@ const UpdateInventory = ({ inventory, onClose, inventoryRefetch }) => {
   };
 
   return (
-    <div className="w-full">
-      <tr
-        key={`update-form-${inventory.inventory_id}`}
-        className="bg-gray-100 w-11/12 mx-auto"
-      >
-        <td className="p-2 text-center">
-          <input
-            type="file"
-            id="file-upload"
-            onChange={handleFileChange}
-            multiple
-            className="sr-only"
-          />
+    <div className="flex flex-col w-11/12 mx-auto px-3 mt-1">
+      <table>
+        <thead className="bg-base-300">
+          <tr>
+            <th className="p-4 text-center text-gray-600 whitespace-nowrap">
+              Image
+            </th>
+            <th className="p-4 text-center text-gray-600 whitespace-nowrap">
+              Color
+            </th>
+            <th className="p-4 text-center text-gray-600 whitespace-nowrap">
+              Quantity
+            </th>
+            <th className="p-4 text-center text-gray-600 whitespace-nowrap">
+              Base Price
+            </th>
+            <th className="p-4 text-center text-gray-600 whitespace-nowrap">
+              Selling Price
+            </th>
+            <th className="p-4 text-center text-gray-600 whitespace-nowrap">
+              Applicable Tax Percent
+            </th>
+            <th className="p-4 text-center text-gray-600 whitespace-nowrap">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr key={`${inventory.inventory_id}`}>
+            <td className="p-2 text-center">
+              <input
+                type="file"
+                id="file-upload"
+                onChange={handleFileChange}
+                multiple
+                className="sr-only"
+              />
 
-          {/* Button to Trigger File Input */}
-          <button
-            type="button"
-            onClick={() => document.getElementById("file-upload").click()}
-            className="bg-[#00C20D] text-white rounded-md px-4 py-2 transition-all ease-in-out font-roboto"
-          >
-            Upload
-          </button>
-        </td>
-        <td className="p-2 text-center">
-          <select
-            name="color_name"
-            value={updateFields.color_name}
-            onChange={handleInputChange}
-            className="border rounded px-2 py-1 w-20"
-          >
-            <option value="">{updateFields.color_name}</option>
-            {colors.map((color) => (
-              <option key={color.color_id} value={color.color_id}>
-                {color.color_name}
-              </option>
-            ))}
-          </select>
-        </td>
-        <td className="p-2 text-center">
-          <input
-            type="number"
-            name="quantity"
-            value={updateFields.quantity}
-            onChange={handleInputChange}
-            className="border rounded px-2 py-1 w-20"
-          />
-        </td>
-        <td className="p-2 text-center">
-          <input
-            type="number"
-            name="show_available_quantity"
-            value={updateFields.show_available_quantity}
-            onChange={handleInputChange}
-            className="border rounded px-2 py-1 w-20"
-          />
-        </td>
-        <td className="p-2 text-center">
-          <input
-            type="number"
-            name="base_price"
-            value={updateFields.base_price}
-            onChange={handleInputChange}
-            className="border rounded px-2 py-1 w-20"
-          />
-        </td>
-        <td className="p-2 text-center">
-          <input
-            type="number"
-            name="selling_price"
-            value={updateFields.selling_price}
-            onChange={handleInputChange}
-            className="border rounded px-2 py-1 w-20"
-          />
-        </td>
-        <td className="p-2 text-center">
-          <input
-            type="number"
-            name="applicable_tax_percent"
-            value={updateFields.applicable_tax_percent}
-            onChange={handleInputChange}
-            className="border rounded px-2 py-1 w-20"
-          />
-        </td>
-        <td className="p-2 text-center">
-          <div className="flex justify-center space-x-2">
-            <button
-              onClick={handleSave}
-              className="bg-green-500 text-white px-2 py-1 rounded"
-            >
-              Save
-            </button>
-            <button
-              onClick={handleCancel}
-              className="bg-red-500 text-white px-2 py-1 rounded"
-            >
-              Cancel
-            </button>
-          </div>
-        </td>
-      </tr>
+              {/* Button to Trigger File Input */}
+              <button
+                type="button"
+                onClick={() => document.getElementById("file-upload").click()}
+                className="bg-[#00C20D] text-white rounded-md px-4 py-2 transition-all ease-in-out font-roboto"
+              >
+                Upload
+              </button>
+            </td>
+            <td className="p-2 text-center">
+              <select
+                name="color_name"
+                value={updateFields.color_name}
+                onChange={handleInputChange}
+                className="border rounded px-2 py-1 w-20"
+              >
+                <option value="">{updateFields.color_name}</option>
+                {colors.map((color) => (
+                  <option key={color.color_id} value={color.color_id}>
+                    {color.color_name}
+                  </option>
+                ))}
+              </select>
+            </td>
+            <td className="p-2 text-center">
+              <input
+                type="number"
+                name="quantity"
+                value={updateFields.quantity}
+                onChange={handleInputChange}
+                className="border rounded px-2 py-1 w-20"
+              />
+            </td>
+            <td className="p-2 text-center">
+              <input
+                type="number"
+                name="base_price"
+                value={updateFields.base_price}
+                onChange={handleInputChange}
+                className="border rounded px-2 py-1 w-20"
+              />
+            </td>
+            <td className="p-2 text-center">
+              <input
+                type="number"
+                name="selling_price"
+                value={updateFields.selling_price}
+                onChange={handleInputChange}
+                className="border rounded px-2 py-1 w-20"
+              />
+            </td>
+            <td className="p-2 text-center">
+              <input
+                type="number"
+                name="applicable_tax_percent"
+                value={updateFields.applicable_tax_percent}
+                onChange={handleInputChange}
+                className="border rounded px-2 py-1 w-20"
+              />
+            </td>
+            <td className="p-2 text-center">
+              <div className="flex justify-center space-x-2">
+                <button
+                  onClick={handleSave}
+                  className="bg-green-500 text-white px-2 py-1 rounded"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="bg-red-500 text-white px-2 py-1 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
       <div>
         {uploadedImages.length > 0 && (
-          <div className="p-4 space-y-4 bg-white rounded-lg shadow-md flex flex-col gap-3">
+          <div className="p-4 space-y-4 flex flex-col w-full gap-3">
             <div className="flex items-center gap-4 mt-4">
               {uploadedImages.map((image) => (
-                <div key={image?.image_id} className="relative w-24 h-24">
+                <div key={image?.image_id} className="relative">
                   {/* Image */}
                   <img
                     src={image.image_url}
                     alt={image?.image_id}
-                    className="rounded-md shadow-md w-full h-full object-cover"
+                    className="rounded-md shadow-md w-36 h-36 object-cover"
                   />
                   {/* Close Button */}
                   <button
@@ -302,12 +318,14 @@ const UpdateInventory = ({ inventory, onClose, inventoryRefetch }) => {
                 </div>
               ))}
             </div>
-            <button
-              onClick={handleSaveImages}
-              className="bg-green-500 text-white px-2 py-1 rounded"
-            >
-              Update Images
-            </button>
+            <div className="flex justify-center">
+              <button
+                onClick={() => handleSaveImages(inventory.inventory_id)}
+                className="bg-green-500 text-white px-2 py-1 rounded w-40 h-10"
+              >
+                Upload Images
+              </button>
+            </div>
           </div>
         )}
       </div>

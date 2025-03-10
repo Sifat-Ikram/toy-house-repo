@@ -4,6 +4,7 @@ import axios from "axios";
 import useCategory from "../../hooks/useCategory";
 import { useForm } from "react-hook-form";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
+import { FaTrash } from "react-icons/fa";
 
 const image_hosting_key = import.meta.env.VITE_image_hosting_key;
 const image_hosting_api = `https://api.imgbb.com/1/upload?key=${image_hosting_key}`;
@@ -49,7 +50,7 @@ const AddCategory = () => {
       const formData = new FormData();
       formData.append("image", categoryImage);
 
-      const imageUploadResponse = await axios.post(image_hosting_api, formData); // Log the response
+      const imageUploadResponse = await axios.post(image_hosting_api, formData);
 
       if (imageUploadResponse.status === 200) {
         const imageUrl = imageUploadResponse.data.data.url;
@@ -64,6 +65,7 @@ const AddCategory = () => {
           "/api/v1/admin/categories/create?request-id=1234",
           formattedData
         );
+        console.log(response);
 
         if (response.status === 200) {
           reset();
@@ -112,6 +114,33 @@ const AddCategory = () => {
     if (file) {
       setCategoryImage(file);
     }
+  };
+
+  const handleDelete = async (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosPublic
+          .delete(`/api/v1/admin/categories/delete/${id}?request-id=1234`)
+          .then((response) => {
+            refetch();
+            if (response.status === 200) {
+              Swal.fire("Deleted!", "Category has been deleted.", "success");
+            }
+          })
+          .catch((error) => {
+            console.log(error.message);
+            Swal.fire("Error!", "Something went wrong.", "error");
+          });
+      }
+    });
   };
 
   return (
@@ -195,7 +224,7 @@ const AddCategory = () => {
           {categories.length > 0 ? (
             categories.map((category) => (
               <li key={category.category_id} className="text-lg">
-                <div className="flex flex-col items-center gap-2 shadow rounded-lg bg-white border">
+                <div className="relative flex flex-col items-center gap-2 shadow rounded-lg bg-white border">
                   <img
                     src={category.category_logo_url}
                     alt={category.name}
@@ -208,6 +237,14 @@ const AddCategory = () => {
                     <p className="text-sm font-roboto min-h-12">
                       {category.description}
                     </p>
+                  </div>
+                  <div>
+                    <button
+                      className="bg-red-600 absolute top-[2px] right-[2px] text-white p-2 rounded-full hover:bg-red-700"
+                      onClick={() => handleDelete(category.category_id)}
+                    >
+                      <FaTrash className="text-xs" />
+                    </button>
                   </div>
                 </div>
               </li>
