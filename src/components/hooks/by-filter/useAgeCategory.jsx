@@ -12,6 +12,7 @@ const useAgeCategory = (minAge, maxAge) => {
   } = useQuery({
     queryKey: ["ageCategory", minAge, maxAge],
     queryFn: async () => {
+      if (!minAge && !maxAge) return [];
       const res = await axiosPublic.get(
         `/api/v1/open/products/get/by/age-range?minimum-age-range=${minAge}&maximum-age-range=${maxAge}&page=0&size=10000&request-id=1234`
       );

@@ -276,57 +276,65 @@ const ShoppingCart = ({ handleShowDrawer }) => {
         </div>
 
         {user ? (
-          cart?.items.map((item) => (
-            <div key={item.sku} className="relative">
-              <div className="flex justify-between gap-1 mb-4 border-b py-3 px-2">
-                <img
-                  src={item.image_url || "/default-image.jpg"}
-                  alt={item.product_name || "Product Image"}
-                  className="w-[100px] h-[100px] sm:w-[138px] sm:h-[138px] rounded-[15px] bg-white"
-                />
-                <div className="flex flex-col flex-1 space-y-3 dark:text-black dark:bg-white">
-                  <div className="flex justify-between gap-2">
-                    <div className="flex flex-col px-5">
-                      <h1 className="font-poppins text-lg font-semibold">
-                        {item.product_name}
-                      </h1>
-                      <h1 className="text-base font-normal">
-                        Color: {item?.color_name}
+          cart.length > 0 ? (
+            cart?.items.map((item) => (
+              <div key={item.sku} className="relative">
+                <div className="flex justify-between gap-1 mb-4 border-b py-3 px-2">
+                  <img
+                    src={item.image_url || "/default-image.jpg"}
+                    alt={item.product_name || "Product Image"}
+                    className="w-[100px] h-[100px] sm:w-[138px] sm:h-[138px] rounded-[15px] bg-white"
+                  />
+                  <div className="flex flex-col flex-1 space-y-3 dark:text-black dark:bg-white">
+                    <div className="flex justify-between gap-2">
+                      <div className="flex flex-col px-5">
+                        <h1 className="font-poppins text-lg font-semibold">
+                          {item.product_name}
+                        </h1>
+                        <h1 className="text-base font-normal">
+                          Color: {item?.color_name}
+                        </h1>
+                      </div>
+                      <div>
+                        <MdCancel
+                          onClick={() => handleDeleteCart(item.sku)}
+                          className="text-xl font-black text-red-500 dark:text-red-500 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center dark:text-black dark:bg-white">
+                      <div className="bg-white rounded-full flex items-center gap-3 p-[2px]">
+                        <h1
+                          onClick={() => handleUserDecrease(item.sku)}
+                          className="bg-base-200 dark:text-black dark:bg-white p-2 rounded-full text-lg md:text-2xl font-semibold cursor-pointer"
+                        >
+                          <FiMinus />
+                        </h1>
+                        <h1 className="font-poppins text-xl font-semibold">
+                          {item.quantity}
+                        </h1>
+                        <h1
+                          onClick={() => handleUserIncrease(item.sku)}
+                          className="bg-base-200 dark:text-black dark:bg-white p-2 rounded-full text-lg md:text-2xl font-bold cursor-pointer"
+                        >
+                          <RxPlus />
+                        </h1>
+                      </div>
+                      <h1 className="font-poppins text-base md:text-xl font-semibold">
+                        BDT {(item.selling_price * item.quantity).toFixed(2)}
                       </h1>
                     </div>
-                    <div>
-                    <MdCancel
-                      onClick={() => handleDeleteCart(item.sku)}
-                      className="text-xl font-black text-red-500 dark:text-red-500 cursor-pointer"
-                    />
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center dark:text-black dark:bg-white">
-                    <div className="bg-white rounded-full flex items-center gap-3 p-[2px]">
-                      <h1
-                        onClick={() => handleUserDecrease(item.sku)}
-                        className="bg-base-200 dark:text-black dark:bg-white p-2 rounded-full text-lg md:text-2xl font-semibold cursor-pointer"
-                      >
-                        <FiMinus />
-                      </h1>
-                      <h1 className="font-poppins text-xl font-semibold">
-                        {item.quantity}
-                      </h1>
-                      <h1
-                        onClick={() => handleUserIncrease(item.sku)}
-                        className="bg-base-200 dark:text-black dark:bg-white p-2 rounded-full text-lg md:text-2xl font-bold cursor-pointer"
-                      >
-                        <RxPlus />
-                      </h1>
-                    </div>
-                    <h1 className="font-poppins text-base md:text-xl font-semibold">
-                      BDT {(item.selling_price * item.quantity).toFixed(2)}
-                    </h1>
                   </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-10">
+              <h2 className="text-lg font-semibold dark:text-black">
+                Your cart is empty
+              </h2>
             </div>
-          ))
+          )
         ) : existingCart?.length > 0 ? (
           <div className="w-full flex flex-col h-full justify-between p-2">
             {existingCart?.map((cartEntry, index) => (
@@ -409,7 +417,7 @@ const ShoppingCart = ({ handleShowDrawer }) => {
             </span>
           </h1>
           <h1 className="font-poppins text-2xl md:text-4xl font-semibold">
-            BDT {totalPrice.toFixed(2)}
+            BDT {totalPrice?.toFixed(2) || 0}
           </h1>
         </div>
         <button

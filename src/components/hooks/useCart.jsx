@@ -8,26 +8,29 @@ const useCart = () => {
   const { user } = useContext(AuthContext);
 
   const fetchCart = async () => {
+    if (!user) return [];
+
     const response = await axiosPublic.get(
       "/api/v1/user/get/cart?request-id=1234",
       {
         headers: {
-          Authorization: `Bearer ${user}`,
+          Authorization: `Bearer ${user}`, // Assuming user.token exists
         },
       }
     );
-    
+
     return response.data;
   };
 
   const {
-    data: cart,
+    data: cart = [], // Default empty array
     refetch: cartRefetch,
     isLoading: cartIsLoading,
     error: cartError,
   } = useQuery({
-    queryKey: ["cart"],
+    queryKey: ["cart", user], // Ensure query key changes with user
     queryFn: fetchCart,
+    enabled: !!user, // 🔥 Prevents API call when user is not logged in
   });
 
   return { cart, cartRefetch, cartIsLoading, cartError };

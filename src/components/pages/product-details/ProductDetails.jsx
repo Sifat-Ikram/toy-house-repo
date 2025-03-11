@@ -20,7 +20,6 @@ const ProductDetails = () => {
   const [currentDiscountPercent, setCurrentDiscountPercent] = useState();
   const [expandedSections, setExpandedSections] = useState({});
   const [currentQuantity, setCurrentQuantity] = useState();
-  const [reviewLength, setReviewLength] = useState();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -111,13 +110,28 @@ const ProductDetails = () => {
                       return
                     </p>
                     <span>|</span>
-                    <p>{reviewLength || 0} reviews</p>
+                    <div className="flex space-x-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span
+                          key={star}
+                          className={`text-lg ${
+                            selectedProduct.review >= star
+                              ? "text-yellow-500"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
               <div className="flex flex-col space-y-5">
-                <div className="flex space-x-2 rounded-full py-1 w-fit">
-                  <h1 className="text-xs sm:text-sm md:text-base lg:text-lg font-normal font-roboto">Colors: </h1>
+                <div className="flex sm:items-center space-x-2 rounded-full py-1 w-fit">
+                  <h1 className="text-xs sm:text-sm md:text-base lg:text-lg font-normal font-roboto">
+                    Colors:{" "}
+                  </h1>
                   <div className="flex max-sm:flex-wrap items-center gap-3">
                     {selectedProduct?.product_inventory?.map((color) => (
                       <div
@@ -227,7 +241,8 @@ const ProductDetails = () => {
                     <div
                       className={`overflow-hidden transition-all duration-1000 ease-in-out ${
                         expandedSections[id]
-                          ? "max-h-[500px] opacity-100 py-2" : "max-h-0 opacity-0 py-0"
+                          ? "max-h-[500px] opacity-100 py-2"
+                          : "max-h-0 opacity-0 py-0"
                       }`}
                     >
                       {content}
@@ -260,7 +275,7 @@ const ProductDetails = () => {
           <h1 className="text-lg sm:text-xl md:text-3xl font-poppins uppercase mb-4 py-3 sm:py-4 md:py-5 w-full font-medium sm:font-semibold text-center">
             Customer Reviews
           </h1>
-          <CustomerReviews productId={id} setReviewLength={setReviewLength} />
+          <CustomerReviews productId={id} />
         </div>
         <div className="w-full bg-white dark:bg-white">
           <SimilarProduct id={selectedProduct?.category?.category_id} />

@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
 import Swal from "sweetalert2";
 import useReviews from "../../hooks/useReviews";
 
-const CustomerReviews = ({ productId, setReviewLength }) => {
+const CustomerReviews = ({ productId }) => {
   const [selectedReviews, reviewRefetch, reviewIsLoading, reviewError] =
     useReviews({ id: productId });
   const axiosPublic = useAxiosPublic();
@@ -64,10 +64,6 @@ const CustomerReviews = ({ productId, setReviewLength }) => {
       });
     }
   };
-
-  useEffect(() => {
-    setReviewLength(selectedReviews.length);
-  }, [setReviewLength, selectedReviews]);
 
   if (reviewIsLoading) {
     return <div>Loading reviews...</div>;
@@ -130,7 +126,10 @@ const CustomerReviews = ({ productId, setReviewLength }) => {
         <div className="space-y-4 md:space-y-6">
           {selectedReviews.length > 0 ? (
             selectedReviews.map((review) => (
-              <div key={review.id} className="p-[10px] md:p-3 lg:p-5 space-y-[1px] sm:space-y-1 md:space-y-2 shadow rounded-lg">
+              <div
+                key={review.id}
+                className="p-[10px] md:p-3 lg:p-5 space-y-[1px] sm:space-y-1 md:space-y-2 shadow rounded-lg"
+              >
                 <div className="flex items-center">
                   <h4 className="text-lg font-semibold text-gray-800">
                     {review.id}

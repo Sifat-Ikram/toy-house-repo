@@ -158,7 +158,7 @@ const CheckoutPage = () => {
         phone_number: phone,
         email: email,
         shipping_address: address,
-        deliveryOptions: city === "Dhaka" ? "INSIDE_DHAKA" : "OUTSIDE_DHAKA",
+        delivery_options: city === "Dhaka" ? "INSIDE_DHAKA" : "OUTSIDE_DHAKA",
       };
       console.log(formattedData);
 
@@ -241,7 +241,7 @@ const CheckoutPage = () => {
         phone_number: phone,
         email: email,
         shipping_address: address,
-        deliveryOptions: city === "Dhaka" ? "INSIDE_DHAKA" : "OUTSIDE_DHAKA",
+        delivery_options: city === "Dhaka" ? "INSIDE_DHAKA" : "OUTSIDE_DHAKA",
       };
 
       try {
@@ -300,7 +300,7 @@ const CheckoutPage = () => {
 
   return (
     <div className="w-11/12 mx-auto py-10 min-h-screen text-[#2F3132] space-y-10">
-      <h1 className="font-poppins text-5xl font-normal underline text-center">
+      <h1 className="font-poppins text-3xl md:text-5xl font-normal underline text-center">
         Checkout
       </h1>
       <div className="flex flex-col space-y-20">
@@ -329,21 +329,21 @@ const CheckoutPage = () => {
                     <tr key={index}>
                       <td className="font-poppins flex space-x-7 text-xl font-normal border-b-[2px] px-5 py-2 sm:py-3 md:py-5 lg:py-7 col-span-6">
                         <div className="flex flex-col space-y-[2px] md:space-y-2 lg:space-y-3">
-                          <h1 className="font-poppins text-xs sm:text-sm md:text-base font-semibold">
+                          <h1 className="font-poppins text-[10px] sm:text-sm md:text-base font-semibold">
                             {item.product_name}
                           </h1>
-                          <h1 className="font-roboto text-[10px] sm:text-xs md:text-sm font-normal">
+                          <h1 className="font-roboto text-[10px] sm:text-[10px] md:text-sm font-normal">
                             {item.color_name}
                           </h1>
                         </div>
                       </td>
-                      <td className="font-poppins text-xs sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
+                      <td className="font-poppins text-[10px] sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
                         {item.quantity}
                       </td>
-                      <td className="font-poppins text-xs sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
+                      <td className="font-poppins text-[10px] sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
                         Tk {item.selling_price}
                       </td>
-                      <td className="font-poppins text-xs sm:text-sm md:text-base text-center lg:text-xl font-normal border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
+                      <td className="font-poppins text-[10px] sm:text-sm md:text-base text-center lg:text-xl font-normal border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
                         Tk {(item.quantity * item.selling_price).toFixed(2)}
                       </td>
                     </tr>
@@ -360,21 +360,21 @@ const CheckoutPage = () => {
                   <tr key={index}>
                     <td className="font-poppins flex space-x-7 text-xl font-normal border-b-[2px] px-5 py-2 sm:py-3 md:py-5 lg:py-7 col-span-6">
                       <div className="flex flex-col space-y-[2px] md:space-y-2 lg:space-y-3">
-                        <h1 className="font-poppins text-xs sm:text-sm md:text-base font-semibold">
+                        <h1 className="font-poppins leading-tight text-[10px] sm:text-sm md:text-base font-semibold">
                           {item.product_name}
                         </h1>
-                        <h1 className="font-roboto text-[10px] sm:text-xs md:text-sm font-normal">
+                        <h1 className="font-roboto text-[10px] md:text-sm font-normal">
                           {item.color_name}
                         </h1>
                       </div>
                     </td>
-                    <td className="font-poppins text-xs sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
+                    <td className="font-poppins text-[10px] sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
                       {item.quantity}
                     </td>
-                    <td className="font-poppins text-xs sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
+                    <td className="font-poppins text-[10px] sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
                       Tk {item.selling_price}
                     </td>
-                    <td className="font-poppins text-xs sm:text-sm md:text-base text-center lg:text-xl font-normal border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
+                    <td className="font-poppins text-[10px] sm:text-sm md:text-base text-center lg:text-xl font-normal border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
                       Tk {(item.quantity * item.selling_price).toFixed(2)}
                     </td>
                   </tr>

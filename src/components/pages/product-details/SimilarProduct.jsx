@@ -15,17 +15,20 @@ const SimilarProduct = ({ id }) => {
   const [slidesPerView, setSlidesPerView] = useState(2);
   const swiperRef = useRef(null);
 
+  const filterProducts = (categoryProducts || []).filter(
+    (product) => String(product.id) !== String(id)
+  );
+
   useEffect(() => {
     if (swiperRef.current) {
       const swiperInstance = swiperRef.current.swiper;
       setTotalSlides(swiperInstance.slides.length);
       setSlidesPerView(swiperInstance.params.slidesPerView);
     }
-  }, [categoryProducts]);
-  
+  }, [filterProducts]);
 
   return (
-    <div className="py-12 md:py-14 lg:py-16 bg-white dark:bg-white dark:text-black">
+    <div className="bg-white dark:bg-white dark:text-black">
       <div className="w-11/12 mx-auto">
         <h2 className="mb-5 text-lg md:text-xl lg:text-3xl font-bold font-poppins text-gray-800 dark:text-gray-800">
           You may also like
@@ -51,11 +54,11 @@ const SimilarProduct = ({ id }) => {
             modules={[Navigation]}
             className="mySwiper"
           >
-            {categoryProducts?.length > 0 ? (
-              categoryProducts?.map((featured) => (
+            {filterProducts?.length > 0 ? (
+              filterProducts?.map((featured) => (
                 <SwiperSlide
                   key={featured.id}
-                  className="shadow-lg rounded-xl max-sm:mx-2 max-lg:mx-4 overflow-hidden transform transition duration-300 hover:scale-105"
+                  className="shadow-lg rounded-xl max-sm:mr-2 max-lg:mr-4 overflow-hidden transform transition duration-300 hover:scale-105"
                 >
                   <Link to={`/productDetail/${featured.id}`}>
                     <div className="group rounded-xl border mb-2 border-gray-200 dark:border-gray-200 dark:bg-white shadow-md hover:shadow-lg transition-all duration-300">

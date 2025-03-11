@@ -102,15 +102,6 @@ const CategoryDetails = () => {
       <div className="drawer drawer-end">
         <input id="drawer-toggle" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content">
-          <div className="my-10 px-2 sm:px-6 md:px-10 lg:px-20">
-            <h2 className="text-xl md:text-2xl lg:text-4xl font-bold text-center mb-5 tracking-wider">
-              Discover a World of Toys!
-            </h2>
-            <p className="text-center text-gray-700 text-sm md:text-lg lg:text-xl max-w-2xl mx-auto">
-              Explore our curated collection of high-quality {id} toys designed
-              to inspire learning and laughter in every child.
-            </p>
-          </div>
 
           {/* Filters Section */}
           <div className="w-full max-sm:px-2 dark:bg-white flex flex-wrap justify-between items-center my-3 px-4 py-2 bg-base-200">

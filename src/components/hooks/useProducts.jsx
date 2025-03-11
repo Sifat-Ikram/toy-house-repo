@@ -11,6 +11,8 @@ const useProducts = ({ id }) => {
   } = useQuery({
     queryKey: ["product", id],
     queryFn: async () => {
+      if (!id) return [];
+      
       const url = `/api/v1/open/products/get/product?product-id=${id}&request-id=1234`;
       const res = await axiosPublic.get(url);
       return res.data;
