@@ -137,7 +137,7 @@ const BrandDetails = () => {
             </h2>
 
             <p className="text-center text-gray-700 dark:text-black text-sm md:text-lg lg:text-xl max-w-2xl mx-auto">
-              Explore our curated collection of high-quality {id} toys designed
+              Explore our curated collection of high-quality toys designed
               to inspire learning and laughter in every child.
             </p>
           </div>

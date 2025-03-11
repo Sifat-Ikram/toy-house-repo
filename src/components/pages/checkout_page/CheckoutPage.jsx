@@ -160,7 +160,6 @@ const CheckoutPage = () => {
         shipping_address: address,
         delivery_options: city === "Dhaka" ? "INSIDE_DHAKA" : "OUTSIDE_DHAKA",
       };
-      console.log(formattedData);
 
       try {
         // Ensure Axios is configured with the right headers and timeout
@@ -182,7 +181,12 @@ const CheckoutPage = () => {
           });
           try {
             const response = await axiosPublic.delete(
-              "/api/v1/user/delete/cart?request-id=1234"
+              "/api/v1/user/delete/cart?request-id=1234",
+              {
+                headers: {
+                  Authorization: `Bearer ${user}`,
+                },
+              }
             );
             console.log("Item deleted successfully:", response.data); // Adjust delay if necessary
           } catch (error) {
@@ -303,48 +307,83 @@ const CheckoutPage = () => {
       <h1 className="font-poppins text-3xl md:text-5xl font-normal underline text-center">
         Checkout
       </h1>
-      <div className="flex flex-col space-y-20">
-        <div className="pt-[10px] px-[10px] border border-solid shadow rounded-[14px]">
-          <table className="w-full">
-            <thead className="w-full bg-[#757575] text-white">
-              <tr>
-                <th className="text-white text-center text-nowrap font-poppins text-xs sm:text-base md:text-xl font-normal col-span-6 px-[5px] sm:px-[14px] md:px-[20px] lg:px-[27px] py-[5px] sm:py-[8px] md:py-[14px] rounded-l-[14px]">
-                  Order Summary
-                </th>
-                <th className="text-white text-center font-poppins text-xs sm:text-base md:text-xl font-normal py-[5px] sm:py-[8px] md:py-[14px] col-span-2">
-                  Quantity
-                </th>
-                <th className="text-white text-center font-poppins text-xs sm:text-base md:text-xl font-normal py-[5px] sm:py-[8px] md:py-[14px] col-span-2">
-                  Price
-                </th>
-                <th className="text-white text-center font-poppins text-xs sm:text-base md:text-xl font-normal col-span-2 px-[5px] sm:px-[14px] md:px-[20px] lg:px-[27px] py-[5px] sm:py-[8px] md:py-[14px] rounded-r-[14px]">
-                  Total
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {user ? (
-                cart?.items?.length > 0 ? (
-                  cart.items.map((item, index) => (
-                    <tr key={index}>
-                      <td className="font-poppins flex space-x-7 text-xl font-normal border-b-[2px] px-5 py-2 sm:py-3 md:py-5 lg:py-7 col-span-6">
+      <div className="flex flex-col space-y-20 dark:bg-white dark:text-black">
+        <div className="py-1 sm:py-[7px] md:pt-[10px] px-1 sm:px-[7px] md:px-[10px] border border-solid shadow rounded-[14px]">
+          <div>
+            <table className="w-full table-auto">
+              <thead className="w-full bg-[#757575] text-white">
+                <tr>
+                  <th className="text-white text-center font-poppins text-[8px] sm:text-sm md:text-base lg:text-xl font-normal px-4 py-3 sm:px-6 md:px-8 lg:px-10 rounded-l-[14px]">
+                    Order Summary
+                  </th>
+                  <th className="text-white text-center font-poppins text-[8px] sm:text-sm md:text-base lg:text-xl font-normal py-3 sm:py-4 md:py-5 lg:py-6">
+                    Quantity
+                  </th>
+                  <th className="text-white text-center font-poppins text-[8px] sm:text-sm md:text-base lg:text-xl font-normal py-3 sm:py-4 md:py-5 lg:py-6">
+                    Price
+                  </th>
+                  <th className="text-white text-center font-poppins text-[8px] sm:text-sm md:text-base lg:text-xl font-normal px-4 py-3 sm:px-6 md:px-8 lg:px-10 rounded-r-[14px]">
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {user ? (
+                  cart?.items?.length > 0 ? (
+                    cart.items.map((item, index) => (
+                      <tr
+                        key={index}
+                        className="border-b-[2px] border-[#e0e0e0]"
+                      >
+                        <td className="font-poppins flex space-x-4 text-[8px] sm:text-sm md:text-base lg:text-lg font-normal px-1 sm:px-2 md:px-4 py-4 sm:py-5 md:py-6 lg:py-7">
+                          <div className="flex flex-col space-y-[2px] md:space-y-2 lg:space-y-3">
+                            <h1 className="font-poppins leading-tight line-clamp-2 text-sm sm:text-base md:text-lg font-semibold">
+                              {item.product_name}
+                            </h1>
+                            <h1 className="font-roboto text-[8px] sm:text-sm md:text-base font-normal">
+                              {item.color_name}
+                            </h1>
+                          </div>
+                        </td>
+                        <td className="font-poppins text-[10px] sm:text-sm md:text-base lg:text-lg font-normal text-center py-4 sm:py-5 md:py-6 lg:py-7">
+                          {item.quantity}
+                        </td>
+                        <td className="font-poppins text-nowrap text-[8px] sm:text-sm md:text-base lg:text-lg font-normal text-center py-4 sm:py-5 md:py-6 lg:py-7">
+                          {item.selling_price} Tk
+                        </td>
+                        <td className="font-poppins text-nowrap text-[8px] sm:text-sm md:text-base lg:text-lg font-normal text-center py-4 sm:py-5 md:py-6 lg:py-7">
+                          {(item.quantity * item.selling_price).toFixed(2)} Tk
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <div className="text-center py-10">
+                      <h2 className="text-lg font-semibold">
+                        Your cart is empty
+                      </h2>
+                    </div>
+                  )
+                ) : existingCart?.items?.length > 0 ? (
+                  existingCart.items.map((item, index) => (
+                    <tr key={index} className="border-b-[2px] border-[#e0e0e0]">
+                      <td className="font-poppins flex space-x-4 text-[8px] sm:text-sm md:text-base lg:text-lg font-normal px-4 py-4 sm:py-5 md:py-6 lg:py-7">
                         <div className="flex flex-col space-y-[2px] md:space-y-2 lg:space-y-3">
-                          <h1 className="font-poppins text-[10px] sm:text-sm md:text-base font-semibold">
+                          <h1 className="font-poppins leading-tight line-clamp-2 text-sm sm:text-base md:text-lg font-semibold">
                             {item.product_name}
                           </h1>
-                          <h1 className="font-roboto text-[10px] sm:text-[10px] md:text-sm font-normal">
+                          <h1 className="font-roboto text-[8px] sm:text-sm md:text-base font-normal">
                             {item.color_name}
                           </h1>
                         </div>
                       </td>
-                      <td className="font-poppins text-[10px] sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
+                      <td className="font-poppins text-[10px] sm:text-sm md:text-base lg:text-lg font-normal text-center py-4 sm:py-5 md:py-6 lg:py-7">
                         {item.quantity}
                       </td>
-                      <td className="font-poppins text-[10px] sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
-                        Tk {item.selling_price}
+                      <td className="font-poppins text-[8px] sm:text-sm md:text-base lg:text-lg font-normal text-center py-4 sm:py-5 md:py-6 lg:py-7">
+                        {item.selling_price} Tk
                       </td>
-                      <td className="font-poppins text-[10px] sm:text-sm md:text-base text-center lg:text-xl font-normal border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
-                        Tk {(item.quantity * item.selling_price).toFixed(2)}
+                      <td className="font-poppins text-[8px] sm:text-sm md:text-base lg:text-lg font-normal text-center py-4 sm:py-5 md:py-6 lg:py-7">
+                        {(item.quantity * item.selling_price).toFixed(2)} Tk
                       </td>
                     </tr>
                   ))
@@ -354,44 +393,17 @@ const CheckoutPage = () => {
                       Your cart is empty
                     </h2>
                   </div>
-                )
-              ) : existingCart?.items?.length > 0 ? (
-                existingCart.items.map((item, index) => (
-                  <tr key={index}>
-                    <td className="font-poppins flex space-x-7 text-xl font-normal border-b-[2px] px-5 py-2 sm:py-3 md:py-5 lg:py-7 col-span-6">
-                      <div className="flex flex-col space-y-[2px] md:space-y-2 lg:space-y-3">
-                        <h1 className="font-poppins leading-tight text-[10px] sm:text-sm md:text-base font-semibold">
-                          {item.product_name}
-                        </h1>
-                        <h1 className="font-roboto text-[10px] md:text-sm font-normal">
-                          {item.color_name}
-                        </h1>
-                      </div>
-                    </td>
-                    <td className="font-poppins text-[10px] sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
-                      {item.quantity}
-                    </td>
-                    <td className="font-poppins text-[10px] sm:text-sm md:text-base lg:text-xl font-normal text-center border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
-                      Tk {item.selling_price}
-                    </td>
-                    <td className="font-poppins text-[10px] sm:text-sm md:text-base text-center lg:text-xl font-normal border-b-[2px] py-2 sm:py-3 md:py-5 lg:py-7 col-span-2">
-                      Tk {(item.quantity * item.selling_price).toFixed(2)}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <div className="text-center py-10">
-                  <h2 className="text-lg font-semibold">Your cart is empty</h2>
-                </div>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
+
           <div className="flex justify-end items-center space-x-8 px-5 py-[10px]">
             <h1 className="font-poppins text-sm sm:text-base md:text-xl lg:text-[25px] font-medium">
               Subtotal
             </h1>
             <h1 className="font-poppins text-sm sm:text-base md:text-xl lg:text-[25px] font-medium">
-              Tk {totalAmount}
+              {totalAmount} Tk
             </h1>
           </div>
         </div>

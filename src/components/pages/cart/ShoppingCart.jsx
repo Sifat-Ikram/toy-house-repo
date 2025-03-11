@@ -263,23 +263,28 @@ const ShoppingCart = ({ handleShowDrawer }) => {
   };
 
   return (
-    <div className="text-[#2F3132] dark:text-black dark:bg-white shadow w-full pb-5 bg-base-200 flex flex-col justify-between min-h-screen relative">
-      <div>
-        <div className="bg-[#FFFFFF] w-full p-3 flex justify-between items-center">
-          <h1 className="text-xl font-poppins font-semibold">Cart</h1>
-          <button
-            className="bg-red-500 dark:bg-red-500 dark:text-white text-white w-7 h-7 flex items-center justify-center text-base rounded-full"
-            onClick={handleShowDrawer}
-          >
-            <RxCross2 />
-          </button>
-        </div>
-
+    <div className="text-[#2F3132] dark:text-black dark:bg-white shadow w-full h-screen bg-base-200 flex flex-col justify-between min-h-screen relative">
+      <div className="bg-[#FFFFFF] w-full p-3 flex justify-between items-center">
+        <h1 className="text-xl font-poppins font-semibold">Cart</h1>
+        <button
+          className="bg-red-500 dark:bg-red-500 dark:text-white text-white w-7 h-7 flex items-center justify-center text-base rounded-full"
+          onClick={handleShowDrawer}
+        >
+          <RxCross2 />
+        </button>
+      </div>
+      <div className="overflow-y-scroll">
         {user ? (
-          cart.length > 0 ? (
+          cart.length === 0 ? (
+            <div className="text-center py-10">
+              <h2 className="text-lg font-semibold dark:text-black">
+                Your cart is empty
+              </h2>
+            </div>
+          ) : (
             cart?.items.map((item) => (
-              <div key={item.sku} className="relative">
-                <div className="flex justify-between gap-1 mb-4 border-b py-3 px-2">
+              <div key={item.sku} className="relative overflow-y-visible">
+                <div className="flex justify-between gap-1 border-b py-2 px-2">
                   <img
                     src={item.image_url || "/default-image.jpg"}
                     alt={item.product_name || "Product Image"}
@@ -288,7 +293,7 @@ const ShoppingCart = ({ handleShowDrawer }) => {
                   <div className="flex flex-col flex-1 space-y-3 dark:text-black dark:bg-white">
                     <div className="flex justify-between gap-2">
                       <div className="flex flex-col px-5">
-                        <h1 className="font-poppins text-lg font-semibold">
+                        <h1 className="font-poppins text-lg line-clamp-2 font-semibold">
                           {item.product_name}
                         </h1>
                         <h1 className="text-base font-normal">
@@ -328,21 +333,15 @@ const ShoppingCart = ({ handleShowDrawer }) => {
                 </div>
               </div>
             ))
-          ) : (
-            <div className="text-center py-10">
-              <h2 className="text-lg font-semibold dark:text-black">
-                Your cart is empty
-              </h2>
-            </div>
           )
         ) : existingCart?.length > 0 ? (
-          <div className="w-full flex flex-col h-full justify-between p-2">
+          <div className="w-full flex flex-col h-full justify-between p-2 overflow-y-visible">
             {existingCart?.map((cartEntry, index) => (
               <div key={index}>
                 {cartEntry.items && cartEntry.items.length > 0 ? (
                   cartEntry.items.map((item) => (
                     <div
-                      key={item.sku}
+                      key={item.inventory_id}
                       className="flex justify-center gap-4 mb-4 border-b pb-4"
                     >
                       <img
@@ -407,10 +406,9 @@ const ShoppingCart = ({ handleShowDrawer }) => {
           </div>
         )}
       </div>
-
-      <div className="w-11/12 mx-auto bottom-0 dark:text-black dark:bg-white">
+      <div className="w-11/12 mx-auto bottom-0 dark:text-black dark:bg-white py-5">
         <div className="space-y-[6px]">
-          <h1 className="font-poppins text-xs font-semibold">
+          <h1 className="font-poppins text-sm font-semibold">
             Subtotal:{" "}
             <span className="text-[#787878] font-normal">
               (Shipping not Included)
@@ -422,7 +420,7 @@ const ShoppingCart = ({ handleShowDrawer }) => {
         </div>
         <button
           onClick={handleCheckout}
-          className="font-poppins text-lg font-semibold w-full buttons rounded-3xl mt-8"
+          className="font-poppins text-lg font-semibold w-full buttons rounded-3xl mt-5"
         >
           {isCheckoutLoading ? "Processing..." : "Checkout"}
         </button>

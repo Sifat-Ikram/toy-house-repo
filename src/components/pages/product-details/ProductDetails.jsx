@@ -138,8 +138,8 @@ const ProductDetails = () => {
                         key={color.product_inventory_id}
                         className={`cursor-pointer items-center gap-1 px-2 sm:px-3 lg:px-4 py-[2px] sm:py-[6px] lg:py-2 border-solid border-[1px] rounded-full shadow-sm ${
                           selectedColor === color.color
-                            ? "bg-base-300 dark:bg-base-300"
-                            : "dark: bg-white"
+                            ? "bg-gray-400 dark:bg-gray-400 dark:text-white"
+                            : "dark:bg-white"
                         }`}
                         onClick={() => {
                           handleColorClick(color);
