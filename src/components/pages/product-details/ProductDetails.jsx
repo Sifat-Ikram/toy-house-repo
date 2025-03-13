@@ -136,9 +136,9 @@ const ProductDetails = () => {
                     {selectedProduct?.product_inventory?.map((color) => (
                       <div
                         key={color.product_inventory_id}
-                        className={`cursor-pointer items-center gap-1 px-2 sm:px-3 lg:px-4 py-[2px] sm:py-[6px] lg:py-2 border-solid border-[1px] rounded-full shadow-sm ${
+                        className={`cursor-pointer items-center text-[10px] sm:text-xs md:text-sm font-poppins font-normal gap-1 px-2 sm:px-3 lg:px-4 py-[2px] sm:py-[6px] lg:py-2 border-solid border-[1px] rounded-full shadow-sm ${
                           selectedColor === color.color
-                            ? "bg-gray-400 dark:bg-gray-400 dark:text-white"
+                            ? "bg-gray-100 dark:bg-gray-100 dark:text-gray-800 text-gray-800"
                             : "dark:bg-white"
                         }`}
                         onClick={() => {
@@ -258,7 +258,7 @@ const ProductDetails = () => {
           <h1 className="text-lg sm:text-xl md:text-3xl font-poppins uppercase py-3 sm:py-4 md:py-5 w-full font-medium sm:font-semibold text-center">
             Product Details
           </h1>
-          <div className="w-full space-y-3 p-5 flex flex-col bg-base-200 min-h-[200px] dark:text-black dark:bg-white">
+          <div className="w-full space-y-3 p-5 flex flex-col bg-base-200 min-h-[200px] rounded-b-3xl dark:text-black dark:bg-white">
             {selectedProduct?.product_description ? (
               <ProductDescription
                 description={selectedProduct?.product_description}

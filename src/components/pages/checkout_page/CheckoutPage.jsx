@@ -526,11 +526,11 @@ const CheckoutPage = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <div className="bg-[#757575] w-full rounded-[10px] px-[26px] py-2">
+              {/* <div className="bg-[#757575] w-full rounded-[10px] px-[26px] py-2">
                 <h1 className="font-poppins  text-sm md:text-base lg:text-xl font-normal text-white">
                   Payment
                 </h1>
-              </div>
+              </div> */}
               <div className="w-11/12 mx-auto flex flex-col px-2">
                 <div className="w-full my-2">
                   <button

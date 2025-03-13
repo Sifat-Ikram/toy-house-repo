@@ -63,10 +63,12 @@ const ProductImageGallery = ({
     if (user) {
       const formattedData = {
         items: [
-          ...cart.items.map((item) => ({
-            product_inventory_id: item.inventory_id,
-            quantity: item.quantity,
-          })),
+          ...(Array.isArray(cart.items)
+            ? cart.items.map((item) => ({
+                product_inventory_id: item.inventory_id,
+                quantity: item.quantity,
+              }))
+            : []),
           {
             product_inventory_id: id, // Assuming `id` is defined elsewhere in your code
             quantity: 1,
@@ -106,8 +108,6 @@ const ProductImageGallery = ({
         if (response.status === 200) {
           const responseData = response?.data;
           const sku = responseData.items[0]?.sku;
-          console.log(responseData.items[0]?.sku);
-          
 
           if (!sku) {
             Swal.fire({
@@ -137,7 +137,6 @@ const ProductImageGallery = ({
             });
           } else {
             const updatedCart = [...existingCartArray, responseData];
-            console.log(updatedCart);
 
             sessionStorage.setItem("cart", JSON.stringify(updatedCart));
             const productIds =

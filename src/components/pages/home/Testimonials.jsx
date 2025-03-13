@@ -78,7 +78,7 @@ const Testimonials = () => {
             {/* Navigation Buttons */}
             <button
               onClick={() => sliderRef.current.slickPrev()}
-              className={`absolute top-1/2 -translate-y-1/2 -mt-9 -left-3 sm:-left-5 md:-left-4 p-1 sm:p-2 md:p-3 bg-white shadow-md rounded-full transition ${
+              className={`absolute top-1/2 -translate-y-1/2 -mt-9 -left-3 sm:-left-5 md:-left-4 p-1 sm:p-2 md:p-[10px] bg-white shadow-md rounded-full transition ${
                 currentIndex === 0 ? "hidden" : "block"
               }`}
               aria-label="Previous Slide"
@@ -88,7 +88,7 @@ const Testimonials = () => {
 
             <button
               onClick={() => sliderRef.current.slickNext()}
-              className={`absolute top-1/2 -translate-y-1/2 -mt-9 right-2 md:right-7 lg:right-6 p-1 sm:p-2 md:p-3 bg-white shadow-md rounded-full transition ${
+              className={`absolute top-1/2 -translate-y-1/2 -mt-9 -right-2 md:right-7 lg:right-8 p-1 sm:p-2 md:p-[10px] bg-white shadow-md rounded-full transition ${
                 currentIndex >= topReviews.length - settings.slidesToShow
                   ? "hidden"
                   : "block"

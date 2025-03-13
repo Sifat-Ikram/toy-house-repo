@@ -27,7 +27,6 @@ const Navbar = ({ handleShowDrawer }) => {
   const { logout, user } = useContext(AuthContext);
   const [isHoveredCategory, setIsHoveredCategory] = useState(false);
   const [isHoveredBrand, setIsHoveredBrand] = useState(false);
-  
 
   const closeDropdownCategory = () => {
     setIsHoveredCategory(false);
@@ -345,7 +344,7 @@ const Navbar = ({ handleShowDrawer }) => {
           <IoSearchOutline
             className={` ${
               isSearchOpen ? "hidden" : "block"
-            } font-semibold text-[15px] md:text-2xl cursor-pointer rounded-full transition-all duration-300 ease-in-out hover:scale-110 lg:hidden`}
+            } font-semibold text-[14px] mt-[2px] sm:text-xl md:text-2xl cursor-pointer rounded-full transition-all duration-300 ease-in-out hover:scale-110 lg:hidden`}
             onClick={() => {
               handleSearchClick();
             }}
@@ -355,24 +354,19 @@ const Navbar = ({ handleShowDrawer }) => {
             className="relative block max-sm:hidden"
           >
             <IoCartOutline className="font-semibold text-[22px] md:text-2xl rounded-full transition-all duration-300 ease-in-out hover:scale-110" />
-            {cartLength > 0 && (
-              <span className="absolute bottom-[2px] right-0  flex items-center justify-center w-3 h-3 text-[10px] font-bold bg-white rounded-full transform translate-x-1/2 translate-y-1/2">
-                {cartLength}
-              </span>
-            )}
           </button>
           <ul className="flex items-center space-x-1 sm:space-x-[10px]">
             {user ? (
               <>
                 <li onClick={() => handleLogout()}>
-                  <span className="font-poppins uppercase text-xs sm:text-sm cursor-pointer">
+                  <span className="font-poppins text-sm sm:text-base cursor-pointer">
                     Logout
                   </span>
                 </li>
                 <li>
                   <Link
                     to={"/userProfile"}
-                    className="font-poppins uppercase text-xs sm:text-sm cursor-pointer"
+                    className="font-poppins text-sm sm:text-base cursor-pointer"
                   >
                     Profile
                   </Link>
@@ -382,14 +376,14 @@ const Navbar = ({ handleShowDrawer }) => {
               <>
                 <li>
                   <Link to="/register" className="flex items-center gap-4">
-                    <span className="font-poppins uppercase text-xs sm:text-sm">
+                    <span className="font-poppins text-sm sm:text-base">
                       Register
                     </span>
                   </Link>
                 </li>
                 <li>
                   <Link to="/logIn" className="flex items-center gap-4">
-                    <span className="font-poppins uppercase text-xs sm:text-sm">
+                    <span className="font-poppins text-sm sm:text-base">
                       Login
                     </span>
                   </Link>

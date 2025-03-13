@@ -8,18 +8,18 @@ const Card = ({ product }) => {
         alt={product?.product_name}
         className="h-[130px] sm:h-[220px] md:h-[200px] lg:h-[250px] w-full transition-transform duration-300 group-hover:scale-105"
       />
-      <div className="flex flex-col px-2 lg:px-3 pb-3">
-        <div className="flex flex-col justify-between space-y-1 sm:space-y-2 md:space-y-3 pt-2 md:pt-4 lg:pt-5">
+      <div className="flex flex-col space-y-1 sm:space-y-2 md:space-y-3 px-2 lg:px-3 pb-3">
+        <div className="flex flex-col justify-between space-y-[2px] pt-2 md:pt-4 lg:pt-5">
           <p className="text-[10px] sm:text-[12px] md:text-[13px] font-roboto">
             {product?.brand_name || " "}
           </p>
           <h2 className="text-[12px] sm:text-sm md:text-[16px] lg:text-[19px] line-clamp-1 pr-2 font-bold font-poppins">
             {product?.product_name || "Product Name"}
           </h2>
-          <p className="text-[10px] sm:text-[12px] md:text-[13px] font-roboto">
-            {product?.category_name || " "}
-          </p>
         </div>
+        <p className="text-[10px] sm:text-[12px] md:text-[13px] font-roboto">
+          {product?.category_name || " "}
+        </p>
         <div className="flex justify-between items-center mt-2 space-x-2">
           <Link to={`/productDetail/${product.id}`} className="w-1/2">
             <button className="px-2 md:px-3 text-nowrap py-1 sm:py-[6px] lg:py-2 rounded-[8px] bg-[#317ff3] hover:bg-[#31b2f3] text-[9px] sm:text-sm lg:text-base font-semibold text-white transition-all cursor-pointer">

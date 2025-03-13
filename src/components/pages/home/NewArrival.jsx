@@ -6,12 +6,13 @@ import { Navigation } from "swiper/modules";
 import { Link } from "react-router-dom";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import useNewProducts from "../../hooks/useNewProducts";
+import CardHome from "../../hooks/CardHome";
 
 const NewArrival = () => {
   const [newProducts] = useNewProducts();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [totalSlides, setTotalSlides] = useState(0);
-  const [slidesPerView, setSlidesPerView] = useState(2);
+  const [slidesPerView, setSlidesPerView] = useState(3);
   const swiperRef = useRef(null);
 
   useEffect(() => {
@@ -34,7 +35,7 @@ const NewArrival = () => {
         New Arrivals
       </h2>
 
-      <div className="relative w-11/12 sm:w-5/6 mx-auto">
+      <div className="relative w-11/12 mx-auto">
         <Swiper
           ref={swiperRef}
           slidesPerView={slidesPerView}
@@ -45,11 +46,9 @@ const NewArrival = () => {
           }}
           onSlideChange={(swiper) => setCurrentIndex(swiper.activeIndex)}
           breakpoints={{
-            1750: { slidesPerView: 6, slidesPerGroup: 1, spaceBetween: 30 },
-            1600: { slidesPerView: 6, slidesPerGroup: 1, spaceBetween: 20 },
-            1400: { slidesPerView: 5, slidesPerGroup: 1, spaceBetween: 15 },
-            900: { slidesPerView: 4, slidesPerGroup: 1, spaceBetween: 20 },
-            500: { slidesPerView: 3, slidesPerGroup: 1, spaceBetween: 5 },
+            1400: { slidesPerView: 6, slidesPerGroup: 1, spaceBetween: 15 },
+            700: { slidesPerView: 5, slidesPerGroup: 1, spaceBetween: 15 },
+            500: { slidesPerView: 4, slidesPerGroup: 1, spaceBetween: 10 },
           }}
           modules={[Navigation]}
           className="mySwiper"
@@ -57,32 +56,7 @@ const NewArrival = () => {
           {newProducts?.map((featured) => (
             <SwiperSlide key={featured.id} className="shadow mb-2 rounded-lg">
               <Link to={`/productDetail/${featured.id}`}>
-                <div className="overflow-hidden group rounded-lg">
-                  <div className="w-full h-[150px] md:h-[170px] lg:h-[200px]">
-                    <img
-                      src={featured.display_image_url}
-                      alt={featured?.product_name}
-                      loading="lazy"
-                      className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
-                    />
-                  </div>
-                  <div className="max-lg:py-3 px-1 sm:px-2 lg:p-4 text-left space-y-[5px]">
-                    <p className="text-[13px] font-roboto line-clamp-1">
-                      {featured?.brand_name || " "}
-                    </p>
-                    <h3 className="text-base sm:text-lg md:text-xl line-clamp-1 lg:text-lg font-bold font-poppins">
-                      {featured?.product_name
-                        ? featured?.product_name
-                        : "No Name Available"}
-                    </h3>
-                    <p className="text-sm md:text-base lg:text-lg font-medium font-roboto mb-1">
-                      {featured?.category_name}
-                    </p>
-                    <p className="text-xs md:text-sm lg:text-lg font-normal font-roboto mb-1">
-                      BDT {featured?.selling_price}
-                    </p>
-                  </div>
-                </div>
+                <CardHome featured={featured} />
               </Link>
             </SwiperSlide>
           ))}
