@@ -26,7 +26,7 @@ const Testimonials = () => {
   };
 
   return (
-    <div className="w-full flex flex-col lg:flex-row items-center bg-[#31b2f3] h-full space-y-5 sm:space-y-8 lg:space-x-5 justify-center bg-no-repeat py-10 md:py-14 lg:py-20 px-6 overflow-hidden">
+    <div className="w-full flex flex-col lg:flex-row items-center bg-[#31b2f3] h-full space-y-8 sm:space-y-8 lg:space-x-5 justify-center bg-no-repeat py-10 md:py-14 lg:py-20 px-6 overflow-hidden">
       {/* Text Section - 40% Width */}
       <div className="w-full lg:w-2/5 text-center lg:text-left lg:mb-0 flex items-center justify-center">
         <div className="w-11/12 mx-auto">
