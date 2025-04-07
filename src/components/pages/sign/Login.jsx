@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import img from "../../../assets/sign/sign_in.webp";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
 import { AuthContext } from "../../../provider/AuthProvider";
 
@@ -18,8 +18,12 @@ const Login = () => {
   const { setUser } = useContext(AuthContext);
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem("rememberedUsername");
-    const savedPassword = localStorage.getItem("rememberedPassword");
+    const savedEmail =
+      localStorage.getItem("rememberedUsername") ||
+      sessionStorage.getItem("rememberedUsername");
+    const savedPassword =
+      localStorage.getItem("rememberedPassword") ||
+      sessionStorage.getItem("rememberedPassword");
 
     if (savedEmail && savedPassword) {
       setValue("username", savedEmail);
@@ -63,7 +67,7 @@ const Login = () => {
         sessionStorage.setItem("tokenExpiry", expiryTime);
         setUser(response.data?.accessToken);
         setError("");
-        navigate(location?.state ? location.state : "/");
+        navigate(location.state?.from || "/");
       } else {
         throw new Error("Something went wrong");
       }
@@ -75,13 +79,8 @@ const Login = () => {
     }
   };
 
-  const handleForgotPassword = () => {
-    // Navigate to a password reset page or send a password reset email
-    navigate("/forgot-password");
-  };
-
   return (
-    <div className="w-11/12 sm:w-5/6 mx-auto min-h-screen sm:py-8">
+    <div className="w-full sm:w-5/6 mx-auto min-h-screen sm:py-8">
       <div className="flex md:items-center flex-col lg:flex-row sm:gap-8 md:gap-14 lg:gap-20">
         {/* Image Section */}
         <div className="lg:w-2/5 lg:ml-10 max-sm:hidden">
@@ -93,7 +92,7 @@ const Login = () => {
         </div>
 
         {/* Form Section */}
-        <div className="sm:flex-1 flex flex-col justify-center items-center gap-5 p-5 w-full md:shadow-2xl bg-white rounded-lg">
+        <div className="sm:flex-1 flex flex-col justify-center items-center gap-5 p-2 md:p-4 lg:p-5 w-full md:shadow-2xl bg-white rounded-lg">
           {/* Heading */}
           <div className="text-center mb-1 lg:mb-3">
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#03b4f6] tracking-tight leading-tight mb-1">
@@ -155,15 +154,22 @@ const Login = () => {
                   id="rememberMe"
                   checked={rememberMe}
                   onChange={() => setRememberMe(!rememberMe)}
-                  className="mr-2"
+                  className="mr-2 dark:bg-white"
                 />
-                <label htmlFor="rememberMe" className="text-gray-600">
+                <label
+                  htmlFor="rememberMe"
+                  className="font-normal text-nowrap text-[12px] sm:text-sm md:text-base"
+                >
                   Remember me
                 </label>
               </div>
-              <button type="button" onClick={handleForgotPassword} className="">
-                Forgot password?
-              </button>
+              <div>
+                <Link to={"/forgotPassword"}>
+                  <h1 className="font-normal text-nowrap text-[12px] sm:text-sm md:text-base hover:underline">
+                    Forget Password?
+                  </h1>
+                </Link>
+              </div>
             </div>
 
             {/* Submit Button */}

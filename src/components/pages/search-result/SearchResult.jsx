@@ -83,9 +83,9 @@ const SearchResult = () => {
       const matchesCategory =
         selectedCategory === "" || prod?.category_name === selectedCategory;
       const matchesAge =
-        !selectedAge || // If no age is selected, show all products
-        (selectedAge[0] <= prod?.maximum_age_range &&
-          selectedAge[1] >= prod?.minimum_age_range);
+        !selectedAge ||
+        (prod?.minimum_age_range >= selectedAge[0] &&
+          prod?.maximum_age_range <= selectedAge[1]);
       const matchesPrice =
         prod.selling_price >= priceRange[0] &&
         prod.selling_price <= priceRange[1];
@@ -102,17 +102,6 @@ const SearchResult = () => {
     if (e.target.id === "overlay") {
       setFiltersDrawerVisible(false);
     }
-  };
-
-  const clearCategory = () => setSelectedCategory("");
-  const clearBrand = () => setSelectedBrand("");
-
-  const clearAll = () => {
-    setSelectedBrand("");
-    setSelectedAge("");
-    setSelectedCategory("");
-    setPriceRange([0, 2000]);
-    setPage(0);
   };
 
   if (error) {
@@ -179,7 +168,7 @@ const SearchResult = () => {
             {/* Sort By Section */}
             <div className="flex items-center gap-2 sm:gap-3">
               <h1 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold">
-                Sort By:
+                Sort By Price:
               </h1>
               <select
                 className="p-1 md:p-2 rounded-lg bg-base-100 dark:text-black border dark:bg-white border-gray-200 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-gray-300"
@@ -225,43 +214,8 @@ const SearchResult = () => {
             )}
             <div className="flex-1 max-sm:px-1">
               {filteredProducts.length ? (
-                <div className="max-sm:px-1">
-                  <div className="flex items-center space-x-2">
-                    {/* Render selected brand */}
-                    {selectedCategory.length > 0 && (
-                      <div className="flex items-center text-sm px-[10px] py-1 rounded-full">
-                        {selectedCategory}
-                        <button
-                          onClick={clearCategory}
-                          className="ml-2 text-red-500 hover:text-red-700"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    )}
-                    {selectedCategory.length > 0 && (
-                      <div className="flex items-center text-sm px-[10px] py-1 rounded-full">
-                        {selectedBrand}
-                        <button
-                          onClick={clearBrand}
-                          className="ml-2 text-red-500 hover:text-red-700"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Clear All button */}
-                    {selectedCategory && (
-                      <button
-                        onClick={clearAll}
-                        className="flex items-center text-sm px-[10px] py-1 rounded-full"
-                      >
-                        Clear All
-                      </button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 my-5">
+                <div className="max-sm:px-1 pb-5 sm:pr-1 md:pr-2 lg:pr-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 my-5">
                     {filteredProducts.map((product) => (
                       <div key={product.id}>
                         <Card product={product} />

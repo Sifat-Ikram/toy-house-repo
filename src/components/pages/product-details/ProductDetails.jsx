@@ -11,44 +11,50 @@ import SimilarProduct from "./SimilarProduct";
 const ProductDetails = () => {
   const { id } = useParams();
   const { selectedProduct } = useProducts({ id });
-  const [currentImages, setCurrentImages] = useState([]);
-  const [selectedImage, setSelectedImage] = useState();
+  const [currentImages, setCurrentImages] = useState(
+    selectedProduct?.product_inventory?.[0]?.product_images || []
+  );
+  const [currentVideos, setCurrentVideos] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(unavailableImage);
+  const [selectedVideos, setSelectedVideos] = useState(unavailableImage);
   const [currentPrice, setCurrentPrice] = useState("");
   const [basePrice, setBasePrice] = useState("");
   const [selectedColor, setSelectedColor] = useState();
   const [inventoryId, setInventoryId] = useState("");
   const [currentDiscountPercent, setCurrentDiscountPercent] = useState();
-  const [expandedSections, setExpandedSections] = useState({});
+  const [expandedSection, setExpandedSection] = useState("summery");
   const [currentQuantity, setCurrentQuantity] = useState();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Set the default color when the page loads (first color in the list)
   useEffect(() => {
-    if (selectedProduct?.product_inventory?.length > 0) {
-      const defaultInventory = selectedProduct.product_inventory[0];
-      setSelectedColor(defaultInventory?.color);
-      setInventoryId(defaultInventory?.product_inventory_id);
-      setCurrentImages(defaultInventory?.product_images);
-      setCurrentPrice(defaultInventory?.selling_price);
-      setBasePrice(defaultInventory.base_price);
-      setCurrentQuantity(defaultInventory?.quantity);
-      setCurrentDiscountPercent(defaultInventory?.discount_percent);
-      setSelectedImage(
-        defaultInventory.product_images[0]?.image_url || unavailableImage
-      );
-    }
+    if (!selectedProduct || !selectedProduct.product_inventory) return;
+    const firstInventory = selectedProduct.product_inventory[0];
+    if (!firstInventory) return;
+    
+    setSelectedColor(firstInventory?.color || "");
+    setInventoryId(firstInventory?.product_inventory_id || "");
+    setCurrentImages(firstInventory?.product_images || []);
+    setCurrentVideos(firstInventory?.product_videos || []);
+    setCurrentPrice(firstInventory?.selling_price || 0);
+    setBasePrice(firstInventory?.base_price || 0);
+    setCurrentQuantity(firstInventory?.quantity || 0);
+    setCurrentDiscountPercent(firstInventory?.discount_percent || 0);
+    setSelectedImage(
+      firstInventory?.product_images?.[0]?.image_url || unavailableImage
+    );
+    setSelectedVideos(
+      firstInventory?.product_videos?.[0]?.video_url || unavailableImage
+    );
   }, [selectedProduct]);
 
-  if (!selectedProduct) {
-    return <span className="loading loading-ring loading-lg"></span>;
-  }
-
-  // Handle color selection
   const handleColorClick = (inventory) => {
     setInventoryId(inventory?.product_inventory_id);
     setCurrentImages(inventory.product_images);
+    setCurrentVideos(inventory?.product_videos);
     setCurrentPrice(inventory.selling_price);
     setBasePrice(inventory.base_price);
     setCurrentDiscountPercent(inventory.discount_percent);
@@ -56,17 +62,25 @@ const ProductDetails = () => {
     setSelectedImage(
       inventory.product_images[0]?.image_url || unavailableImage
     );
+    setSelectedVideos(
+      inventory?.product_videos[0]?.video_url || unavailableImage
+    );
+    setSelectedColor(inventory.color);
   };
+
+  if (!selectedProduct) {
+    return <span className="loading loading-ring loading-lg"></span>;
+  }
 
   const handleImageClick = (imageUrl) => {
     setSelectedImage(imageUrl);
   };
+  const handleVideoClick = (videoUrl) => {
+    setSelectedVideos(videoUrl);
+  };
 
   const toggleCollapse = (section) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section], // Toggle specific section
-    }));
+    setExpandedSection((prev) => (prev === section ? null : section)); // Close if already open, otherwise open new section
   };
 
   return (
@@ -94,13 +108,17 @@ const ProductDetails = () => {
                 id={inventoryId}
                 currentImages={currentImages}
                 selectedImage={selectedImage}
+                currentVideos={currentVideos}
+                selectedVideos={selectedVideos}
                 handleImageClick={handleImageClick}
+                handleVideoClick={handleVideoClick}
                 currentQuantity={currentQuantity}
+                sku={selectedProduct.sku}
               />
             </div>
-            <div className="w-full lg:flex-1 flex flex-col space-y-8 justify-between">
-              <div className="flex flex-col space-y-1">
-                <h1 className="text-lg sm:text-xl font-inter md:text-3xl lg:text-4xl font-medium leading-tight">
+            <div className="w-full lg:flex-1 flex flex-col space-y-3 md:space-y-4">
+              <div className="flex flex-col">
+                <h1 className="text-lg sm:text-xl font-inter md:text-2xl lg:text-3xl font-medium">
                   {selectedProduct?.product_name || "Product Name"}
                 </h1>
                 <div className="flex flex-col space-y-1">
@@ -114,7 +132,7 @@ const ProductDetails = () => {
                       {[1, 2, 3, 4, 5].map((star) => (
                         <span
                           key={star}
-                          className={`text-lg ${
+                          className={`text-base ${
                             selectedProduct.review >= star
                               ? "text-yellow-500"
                               : "text-gray-400"
@@ -127,16 +145,17 @@ const ProductDetails = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col space-y-5">
-                <div className="flex sm:items-center space-x-2 rounded-full py-1 w-fit">
+
+              <div className="flex flex-col space-y-[6px]">
+                <div className="flex space-x-2 rounded-full py-1 w-fit">
                   <h1 className="text-xs sm:text-sm md:text-base lg:text-lg font-normal font-roboto">
                     Colors:{" "}
                   </h1>
-                  <div className="flex max-sm:flex-wrap items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
                     {selectedProduct?.product_inventory?.map((color) => (
                       <div
                         key={color.product_inventory_id}
-                        className={`cursor-pointer items-center text-[10px] sm:text-xs md:text-sm font-poppins font-normal gap-1 px-2 sm:px-3 lg:px-4 py-[2px] sm:py-[6px] lg:py-2 border-solid border-[1px] rounded-full shadow-sm ${
+                        className={`cursor-pointer text-[10px] sm:text-xs md:text-sm font-poppins font-normal gap-1 px-2 sm:px-3 lg:px-4 py-[2px] border border-solid rounded-full shadow-sm ${
                           selectedColor === color.color
                             ? "bg-gray-100 dark:bg-gray-100 dark:text-gray-800 text-gray-800"
                             : "dark:bg-white"
@@ -146,7 +165,7 @@ const ProductDetails = () => {
                           setSelectedColor(color.color);
                         }}
                       >
-                        <h1 className="text-[9px] sm:text-sm font-medium font-roboto">
+                        <h1 className="text-[8px] sm:text-xs font-medium font-roboto">
                           {color?.color}
                         </h1>
                       </div>
@@ -155,27 +174,31 @@ const ProductDetails = () => {
                 </div>
                 <div>
                   {currentQuantity === 0 ? (
-                    <h1 className="text-base font-normal text-red-500 font-roboto">
+                    <h1 className="text-sm font-normal text-red-500 font-roboto">
                       Out of stock
                     </h1>
                   ) : (
-                    <h1 className="text-base font-normal text-green-500 font-roboto">
+                    <h1 className="text-sm font-normal text-green-500 font-roboto">
                       {currentQuantity} items are available
                     </h1>
                   )}
                 </div>
               </div>
-              <div className="flex flex-col space-y-4">
-                <div className="flex flex-col font-roboto">
-                  <h1 className="text-lg sm:text-2xl lg:text-5xl font-normal text-[#90BE32]">
-                    BDT {currentPrice}
-                  </h1>
-                  <div className="flex items-center gap-3 text-[15.27px] text-gray-500">
+
+              <div className="flex flex-col font-roboto">
+                <h1 className="text-lg sm:text-xl lg:text-3xl font-roboto mt-1 text-[#90BE32]">
+                  BDT {currentPrice}
+                </h1>
+                <div className="flex items-center gap-2 mb-1 text-sm text-gray-500">
+                  {basePrice && (
                     <p className="line-through font-normal">{basePrice}</p>
+                  )}
+                  {currentDiscountPercent && (
                     <p className="font-bold">{currentDiscountPercent}% OFF</p>
-                  </div>
+                  )}
                 </div>
               </div>
+
               <div className="w-full md:w-4/5 sm:w-1/2 flex flex-col">
                 {[
                   {
@@ -186,7 +209,7 @@ const ProductDetails = () => {
                         description={selectedProduct?.summary}
                       />
                     ) : (
-                      <h1 className="">There is no Highlights</h1>
+                      <h1>There is no Highlights</h1>
                     ),
                   },
                   {
@@ -197,15 +220,15 @@ const ProductDetails = () => {
                         key={dim?.dimension_id}
                         className="transition-all duration-300"
                       >
-                        <p className="">
+                        <p>
                           <span className="font-normal">Height:</span>{" "}
                           {dim.height} {dim.dimension_unit}
                         </p>
-                        <p className="">
+                        <p>
                           <span className="font-normal">Width:</span>{" "}
                           {dim.width} {dim.dimension_unit}
                         </p>
-                        <p className="">
+                        <p>
                           <span className="font-normal">Depth:</span>{" "}
                           {dim.depth} {dim.dimension_unit}
                         </p>
@@ -224,23 +247,23 @@ const ProductDetails = () => {
                 ].map(({ id, title, content }) => (
                   <div key={id} className="border-gray-300 border-y">
                     <div
-                      className="py-3 flex justify-between items-center cursor-pointer select-none"
+                      className="py-2 flex justify-between items-center cursor-pointer select-none"
                       onClick={() => toggleCollapse(id)}
                     >
-                      <span className="font-normal font-roboto text-base">
+                      <span className="font-normal font-roboto text-sm">
                         {title}
                       </span>
                       <span
-                        className={`text-[#3E3E3E] text-sm transition-transform duration-1000 ease-in-out ${
-                          expandedSections[id] ? "rotate-180" : "rotate-0"
+                        className={`text-[#3E3E3E] text-sm transition-transform duration-300 ease-in-out transform ${
+                          expandedSection === id ? "rotate-180" : "rotate-0"
                         }`}
                       >
-                        {expandedSections[id] ? "−" : "+"}
+                        {expandedSection === id ? "−" : "+"}
                       </span>
                     </div>
                     <div
-                      className={`overflow-hidden transition-all duration-1000 ease-in-out ${
-                        expandedSections[id]
+                      className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                        expandedSection === id
                           ? "max-h-[500px] opacity-100 py-2"
                           : "max-h-0 opacity-0 py-0"
                       }`}
@@ -278,7 +301,10 @@ const ProductDetails = () => {
           <CustomerReviews productId={id} />
         </div>
         <div className="w-full bg-white dark:bg-white">
-          <SimilarProduct id={selectedProduct?.category?.category_id} />
+          <SimilarProduct
+            id={selectedProduct?.category?.category_id}
+            productId={id}
+          />
         </div>
       </div>
     </div>

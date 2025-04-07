@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 const Card = ({ product }) => {
   return (
-    <div className="w-full product-cart rounded-md flex flex-col overflow-hidden group border border-gray-200 dark:border-gray-200 dark:bg-white shadow-md hover:shadow-lg transition-all duration-300">
+    <div className="w-full product-cart rounded-md flex flex-col overflow-hidden group border border-gray-200 dark:border-gray-200 dark:bg-white dark:text-black shadow-md hover:shadow-lg transition-all duration-300">
       <img
         src={product?.display_image_url}
         alt={product?.product_name}
@@ -20,14 +20,14 @@ const Card = ({ product }) => {
         <p className="text-[10px] sm:text-[12px] md:text-[13px] font-roboto">
           {product?.category_name || " "}
         </p>
-        <div className="flex justify-between items-center mt-2 space-x-2">
-          <Link to={`/productDetail/${product.id}`} className="w-1/2">
-            <button className="px-2 md:px-3 text-nowrap py-1 sm:py-[6px] lg:py-2 rounded-[8px] bg-[#317ff3] hover:bg-[#31b2f3] text-[9px] sm:text-sm lg:text-base font-semibold text-white transition-all cursor-pointer">
+        <div className="flex justify-between items-center mt-2 space-x-1 lg:space-x-2">
+          <Link to={`/productDetail/${product.id}`} className="lg:w-1/2">
+            <button className="px-[6px] md:px-2 text-nowrap py-1 sm:py-[6px] lg:py-2 rounded-[8px] bg-[#317ff3] hover:bg-[#31b2f3] text-[9px] sm:text-xs lg:text-sm font-semibold text-white transition-all cursor-pointer">
               View Details
             </button>
           </Link>
           <div className="max-sm:mt-[4px]">
-            <p className="font-bold text-[9px] text-nowrap sm:text-sm lg:text-lg text-[#3E3E3E]">
+            <p className="font-bold text-[9px] text-nowrap sm:text-xs lg:text-base text-[#3E3E3E]">
               BDT {product?.selling_price}
             </p>
           </div>

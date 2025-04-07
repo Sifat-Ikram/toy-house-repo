@@ -67,7 +67,7 @@ const AllBrands = () => {
   };
 
   return (
-    <div className="w-11/12 mx-auto relative space-y-5 sm:space-y-7 md:space-y-9">
+    <div className="w-5/6 lg:w-11/12 mx-auto relative space-y-5 sm:space-y-7 md:space-y-9">
       <h2 className="text-center text-lg md:text-xl lg:text-4xl font-bold font-poppins">
         Our Top Brands
       </h2>
@@ -75,19 +75,19 @@ const AllBrands = () => {
         <button
             ref={prevRef}
             onClick={() => sliderRef.current.slickPrev()}
-            className="custom-prev absolute top-2/3 -translate-y-1/2 -left-2 p-2 rounded-full z-20 bg-[#FEF987]"
+            className="custom-prev absolute top-2/3 -translate-y-1/2 -mt-3 -left-[30px] sm:-left-[38px] md:-left-[43px] lg:-left-[50px] p-[5px] sm:p-2 rounded-full z-20 bg-[#FEF987]"
             aria-label="Previous Slide"
             style={{ display: "none" }}
           >
-            <IoIosArrowBack className="text-xl" />
+            <IoIosArrowBack className="text-xl md:text-3xl lg:text-3xl" />
           </button>
           <button
             ref={nextRef}
             onClick={() => sliderRef.current.slickNext()}
-            className="custom-next absolute top-2/3 -translate-y-1/2 -right-3 p-2 rounded-full z-20 bg-[#FEF987]"
+            className="custom-next absolute top-2/3 -translate-y-1/2 -mt-3 -right-[30px] sm:-right-[38px] md:-right-[43px] lg:-right-[50px] p-[5px] sm:p-2 rounded-full z-20 bg-[#FEF987]"
             aria-label="Next Slide"
           >
-            <IoIosArrowForward className="text-xl" />
+            <IoIosArrowForward className="text-xl md:text-3xl lg:text-3xl" />
           </button>
       </div>
       <Slider {...settings} ref={sliderRef}>

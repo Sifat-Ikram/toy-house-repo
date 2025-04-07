@@ -23,8 +23,8 @@ const ShopByAge = () => {
       title: "Shining Stars",
       age: "6-11 years",
       color: "#7DEAFF",
-      minAge: 10,
-      maxAge: 12,
+      minAge: 6,
+      maxAge: 11, // Fixed incorrect max age (was 12, should be 11)
     },
     {
       _id: 4,
@@ -45,9 +45,9 @@ const ShopByAge = () => {
   const minAge = parseInt(query.get("minAge")) || 0;
   const maxAge = parseInt(query.get("maxAge")) || Infinity;
 
-  // Filter shop items based on minAge and maxAge
+  // Corrected filtering logic: Ensure items overlap with the query range
   const filteredShopItems = shopItems.filter(
-    (item) => item.minAge >= minAge && item.maxAge <= maxAge
+    (item) => item.maxAge >= minAge && item.minAge <= maxAge
   );
 
   return (
@@ -70,7 +70,9 @@ const ShopByAge = () => {
             <h1 className="text-sm sm:text-lg lg:text-2xl font-normal font-poppins text-[#3E3E3E]">
               {item.title}
             </h1>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl">Age {item.age}</p>
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl">
+              Age {item.age}
+            </p>
           </Link>
         ))}
       </div>

@@ -1,88 +1,54 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useRef, useState } from "react";
 
 export const AuthContext = createContext(null);
 
 const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => localStorage.getItem("userAccess"));
+  const [loading, setLoading] = useState(true);
+  const refreshTimeoutRef = useRef(null);
 
-  useEffect(() => {
-    const storedUser =
-      localStorage.getItem("userAccess") ||
-      sessionStorage.getItem("userAccess");
-
-    if (storedUser) {
-      setUser(storedUser);
-    }
-  }, []);
+  const getTokenExpiry = () => {
+    const expiry = localStorage.getItem("tokenExpiry");
+    return expiry ? Number(expiry) : null; // Ensures it is a number
+  };
 
   const isTokenExpired = () => {
-    const expiryTime =
-      localStorage.getItem("tokenExpiry") ||
-      sessionStorage.getItem("tokenExpiry");
+    const expiryTime = getTokenExpiry();
     return expiryTime && Date.now() > expiryTime;
   };
 
-  const refreshAccessToken = () => {
-    const refreshToken =
-      localStorage.getItem("userRefresh") ||
-      sessionStorage.getItem("userRefresh");
+  const logout = () => {
+    ["userAccess", "userRefresh", "tokenExpiry"].forEach((key) => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
 
-    if (!refreshToken) {
-      console.error("No refresh token found, logging out...");
-      logout();
+    setUser(null);
+    if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+  };
+
+  useEffect(() => {
+    if (!user) {
+      setLoading(false); // No user, stop loading
       return;
     }
 
-    console.log("Refreshing token...");
-
-    // Simulate getting a new token
-    const newAccessToken = `new-access-token-${Date.now()}`;
-    localStorage.setItem("accessToken", newAccessToken);
-    setUser(newAccessToken);
-
-    // Extend expiry time (1 hour)
-    const newExpiryTime = Date.now() + 3600 * 1000;
-    localStorage.setItem("tokenExpiry", newExpiryTime);
-    sessionStorage.setItem("tokenExpiry", newExpiryTime);
-
-    // Schedule next token refresh
-    scheduleTokenRefresh();
-  };
-
-  const scheduleTokenRefresh = () => {
-    const expiryTime =
-      localStorage.getItem("tokenExpiry") ||
-      sessionStorage.getItem("tokenExpiry");
-    if (!expiryTime) return;
-
-    const refreshTime = expiryTime - Date.now() - 5000; // Refresh 5 seconds before expiry
-
-    if (refreshTime > 0) {
-      setTimeout(refreshAccessToken, refreshTime);
-    }
-  };
-
-  const logout = async () => {
-    await localStorage.removeItem("userAccess");
-    await sessionStorage.removeItem("userAccess");
-    await localStorage.removeItem("userRefresh");
-    await sessionStorage.removeItem("userRefresh");
-    await localStorage.removeItem("tokenExpiry");
-    await sessionStorage.removeItem("tokenExpiry");
-    await setUser(null);
-  };
-
-  // Run on component mount
-  useEffect(() => {
     if (isTokenExpired()) {
-      refreshAccessToken();
+      logout();
+      setTimeout(() => {
+        window.location.href = "/login"; // Redirect to login
+      }, 0);
     } else {
-      scheduleTokenRefresh();
+      setLoading(false); // User exists & token is valid
     }
   }, []);
 
+  if (loading) {
+    return <div>Loading...</div>; // Show loading state
+  }
+
   return (
-    <AuthContext.Provider value={{ user, logout, setUser }}>
+    <AuthContext.Provider value={{ user, setUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

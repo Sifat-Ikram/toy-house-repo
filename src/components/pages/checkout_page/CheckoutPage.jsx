@@ -9,8 +9,9 @@ import useUserProfile from "../../hooks/useUserProfile";
 const CheckoutPage = () => {
   const defaultShippingCost = 0;
   const navigate = useNavigate();
-  const { cart } = useCart();
+  const { cart, cartRefetch } = useCart();
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
@@ -91,6 +92,11 @@ const CheckoutPage = () => {
       setName(userData.name || "");
       setEmail(userData.email || "");
       setPhone(userData.phone_number || "");
+      setAddress(
+        Array.isArray(userData.addresses)
+          ? userData.addresses.join(", ")
+          : userData.addresses || ""
+      );
     }
   }, [userData]);
 
@@ -102,11 +108,9 @@ const CheckoutPage = () => {
     }
   }, [city]);
 
-  const productIds = JSON.parse(sessionStorage.getItem("productIds"));
-
   // Function to load cart from sessionStorage
   const loadCart = () => {
-    const updatedCart = JSON.parse(sessionStorage.getItem("checkout")) || {
+    const updatedCart = JSON.parse(localStorage.getItem("checkout")) || {
       items: [],
     };
     setExistingCart(updatedCart);
@@ -129,15 +133,12 @@ const CheckoutPage = () => {
     };
   }, []);
 
-  const totalAmount = user
-    ? cart?.sub_total
-    : existingCart?.items?.reduce(
-        (acc, item) => acc + item.quantity * item.selling_price,
-        0
-      );
+  const totalAmount = user ? cart?.sub_total : existingCart[0]?.sub_total;
+
+  const newTotalAmount = totalAmount + shippingCost;
 
   const handleSubmitOrder = async () => {
-    if (!email || !name || !phone || !address) {
+    if (!name || !phone || !address) {
       Swal.fire({
         toast: true,
         position: "top-end",
@@ -149,18 +150,18 @@ const CheckoutPage = () => {
       return; // Prevent the order from being submitted
     }
     if (user) {
+      setLoading(true);
       const formattedData = {
         items: cart?.items.map((item) => ({
           product_inventory_id: item?.inventory_id,
           quantity: item?.quantity,
         })),
-        name: name,
-        phone_number: phone,
-        email: email,
-        shipping_address: address,
+        name: String(name),
+        phone_number: String(phone),
+        email: String(email),
+        shipping_address: String(address),
         delivery_options: city === "Dhaka" ? "INSIDE_DHAKA" : "OUTSIDE_DHAKA",
       };
-
       try {
         // Ensure Axios is configured with the right headers and timeout
         const response = await axiosPublic.post(
@@ -168,12 +169,12 @@ const CheckoutPage = () => {
           formattedData,
           {
             headers: {
-              Authorization: `Bearer ${user}`,
+              Authorization: `Bearer ${localStorage.getItem("userAccess")}`,
             },
           }
         );
-
         if (response.status === 200) {
+          setLoading(false);
           Swal.fire({
             icon: "success",
             title: "Order placed successfully!",
@@ -188,16 +189,32 @@ const CheckoutPage = () => {
                 },
               }
             );
-            console.log("Item deleted successfully:", response.data); // Adjust delay if necessary
+            if (response.data) {
+              axiosPublic
+                .delete("/api/v1/user/delete/cart?request-id=1234", {
+                  headers: {
+                    Authorization: `Bearer ${user}`, // Assuming user.token exists
+                  },
+                })
+                .then((response) => {
+                  if (response?.request_id === "1234") {
+                    cartRefetch();
+                  }
+                })
+                .catch((error) => {
+                  console.log(error.message);
+                  Swal.fire("Error!", "Something went wrong.", "error");
+                });
+              setName("");
+              setEmail("");
+              setPhone("");
+              setCity("");
+              setAddress("");
+            } // Adjust delay if necessary
           } catch (error) {
             console.error("Error deleting item:", error);
           }
-          setName("");
-          setEmail("");
-          setPhone("");
-          setCity("");
-          setAddress("");
-          setExistingCart({});
+
           navigate("/");
         } else {
           Swal.fire({
@@ -231,20 +248,16 @@ const CheckoutPage = () => {
         }
       }
     } else {
+      setLoading(true);
       const formattedData = {
-        items: existingCart.items.map((cartItem) => {
-          const matchingProduct = productIds.find(
-            (product) => product.sku === cartItem.sku
-          );
-          return {
-            product_inventory_id: matchingProduct ? matchingProduct.id : null,
-            quantity: cartItem.quantity,
-          };
-        }),
-        name: name,
-        phone_number: phone,
-        email: email,
-        shipping_address: address,
+        items: existingCart[0]?.items.map((item) => ({
+          product_inventory_id: item?.inventory_id,
+          quantity: item?.quantity,
+        })),
+        name: String(name),
+        phone_number: String(phone),
+        email: String(email) || "",
+        shipping_address: String(address),
         delivery_options: city === "Dhaka" ? "INSIDE_DHAKA" : "OUTSIDE_DHAKA",
       };
 
@@ -254,8 +267,8 @@ const CheckoutPage = () => {
           "/api/v1/open/create/order?request-id=1234",
           formattedData
         );
-
         if (response.status === 200) {
+          setLoading(false);
           Swal.fire({
             icon: "success",
             title: "Order placed successfully!",
@@ -266,7 +279,8 @@ const CheckoutPage = () => {
           setPhone("");
           setCity("");
           setAddress("");
-          setExistingCart({});
+          localStorage.removeItem("cart");
+          localStorage.removeItem("checkout");
           navigate("/");
         } else {
           Swal.fire({
@@ -330,9 +344,9 @@ const CheckoutPage = () => {
               <tbody>
                 {user ? (
                   cart?.items?.length > 0 ? (
-                    cart.items.map((item, index) => (
+                    cart.items.map((item) => (
                       <tr
-                        key={index}
+                        key={item.inventory_id}
                         className="border-b-[2px] border-[#e0e0e0]"
                       >
                         <td className="font-poppins flex space-x-4 text-[8px] sm:text-sm md:text-base lg:text-lg font-normal px-1 sm:px-2 md:px-4 py-4 sm:py-5 md:py-6 lg:py-7">
@@ -363,9 +377,12 @@ const CheckoutPage = () => {
                       </h2>
                     </div>
                   )
-                ) : existingCart?.items?.length > 0 ? (
-                  existingCart.items.map((item, index) => (
-                    <tr key={index} className="border-b-[2px] border-[#e0e0e0]">
+                ) : existingCart[0]?.items?.length > 0 ? (
+                  existingCart[0].items.map((item) => (
+                    <tr
+                      key={item.inventory_id}
+                      className="border-b-[2px] border-[#e0e0e0]"
+                    >
                       <td className="font-poppins flex space-x-4 text-[8px] sm:text-sm md:text-base lg:text-lg font-normal px-4 py-4 sm:py-5 md:py-6 lg:py-7">
                         <div className="flex flex-col space-y-[2px] md:space-y-2 lg:space-y-3">
                           <h1 className="font-poppins leading-tight line-clamp-2 text-sm sm:text-base md:text-lg font-semibold">
@@ -439,7 +456,6 @@ const CheckoutPage = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="border-[2px] border-solid px-[16px] py-3 rounded-[5px] dark:bg-white dark:text-black"
-                    required
                   />
                 </div>
                 <div className="space-y-1 flex flex-col">
@@ -499,45 +515,67 @@ const CheckoutPage = () => {
                 </h1>
               </div>
               <div className="w-11/12 mx-auto flex flex-col border-[2px] rounded-[14px] px-2">
-                <div className="flex justify-between items-center px-2 py-4 border-b-[2px]">
-                  <h1 className="font-poppins text-base font-normal">
+                <div className="flex justify-between items-center px-2 py-3 md:py-4 border-b-[2px]">
+                  <h1 className="font-poppins text-sm md:text-base font-normal">
                     Item Total
                   </h1>
-                  <h1 className="font-poppins text-base font-normal">
+                  <h1 className="font-poppins text-sm md:text-base font-normal">
                     Tk {totalAmount}
                   </h1>
                 </div>
-                <div className="flex justify-between items-center px-2 py-4 border-b-[2px]">
-                  <h1 className="font-poppins text-base font-normal">
+                <div className="flex justify-between items-center px-2 py-3 md:py-4 border-b-[2px]">
+                  <h1 className="font-poppins text-sm md:text-base font-normal">
                     Shipping
                   </h1>
-                  <h1 className="font-poppins text-base font-normal">
+                  <h1 className="font-poppins text-sm md:text-base font-normal">
                     BDT {shippingCost}
                   </h1>
                 </div>
                 <div className="flex justify-between items-center px-2 py-4">
-                  <h1 className="font-poppins text-base font-normal">
-                    Total For Your Order
+                  <h1 className="font-poppins text-sm md:text-base font-normal">
+                    Order Total
                   </h1>
-                  <h1 className="font-poppins text-base font-normal">
-                    Tk {totalAmount}
+                  <h1 className="font-poppins text-sm md:text-base font-normal">
+                    Tk {newTotalAmount}
                   </h1>
                 </div>
               </div>
             </div>
             <div className="space-y-2">
-              {/* <div className="bg-[#757575] w-full rounded-[10px] px-[26px] py-2">
-                <h1 className="font-poppins  text-sm md:text-base lg:text-xl font-normal text-white">
-                  Payment
-                </h1>
-              </div> */}
               <div className="w-11/12 mx-auto flex flex-col px-2">
                 <div className="w-full my-2">
                   <button
-                    onClick={() => handleSubmitOrder()}
-                    className="buttons  text-sm md:text-base lg:text-xl uppercase w-full py-3 rounded-full"
+                    onClick={handleSubmitOrder}
+                    className="buttons text-sm md:text-base lg:text-xl uppercase w-full py-3 rounded-full flex items-center justify-center"
+                    disabled={loading} // Disable button while loading
                   >
-                    Pay and Place Order
+                    {loading ? (
+                      <>
+                        <svg
+                          className="animate-spin h-5 w-5 mr-2 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8H4z"
+                          ></path>
+                        </svg>
+                        Order Placing...
+                      </>
+                    ) : (
+                      "Place Order"
+                    )}
                   </button>
                 </div>
               </div>

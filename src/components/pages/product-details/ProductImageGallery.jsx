@@ -1,25 +1,25 @@
 import { useContext, useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import ProductImageZoom from "./ProductImageZoom";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import unavailableImage from "../../../assets/logo/No_image.svg";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
 import Swal from "sweetalert2";
 import ShoppingCart from "../cart/ShoppingCart";
 import { AuthContext } from "../../../provider/AuthProvider";
 import useCart from "../../hooks/useCart";
+import { motion } from "framer-motion";
 
 const ProductImageGallery = ({
   currentImages,
-  selectedImage,
-  handleImageClick,
+  currentVideos,
   currentQuantity,
   id,
+  sku,
 }) => {
-  const visibleImages = 5;
+  const visibleItems = 5;
   const axiosPublic = useAxiosPublic();
   const [startIndex, setStartIndex] = useState(0);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { user } = useContext(AuthContext);
   const { cart } = useCart();
 
@@ -35,13 +35,29 @@ const ProductImageGallery = ({
     }
   }, [showDrawer]);
 
+  // Set default selected image and video
+  const [currentSelectedImage, setCurrentSelectedImage] = useState(
+    currentImages.length > 0 ? currentImages[0].image_url : ""
+  );
+
+  const [currentSelectedVideo, setCurrentSelectedVideo] = useState(
+    currentVideos.length > 0 ? currentVideos[0].video_url : ""
+  );
+
+  useEffect(() => {
+    if (currentImages.length > 0) {
+      setCurrentSelectedImage(currentImages[0].image_url);
+    }
+  }, [currentImages]);
+
   const handleNext = () => {
-    if (startIndex + visibleImages < currentImages.length) {
+    if (
+      startIndex + visibleItems <
+      currentImages.length + currentVideos.length
+    ) {
       setStartIndex(startIndex + 1);
     }
   };
-
-  // console.log(cartItems);
 
   const handlePrev = () => {
     if (startIndex > 0) {
@@ -61,19 +77,26 @@ const ProductImageGallery = ({
     }
 
     if (user) {
+      setLoading(true);
       const formattedData = {
-        items: [
-          ...(Array.isArray(cart.items)
-            ? cart.items.map((item) => ({
-                product_inventory_id: item.inventory_id,
-                quantity: item.quantity,
-              }))
-            : []),
-          {
-            product_inventory_id: id, // Assuming `id` is defined elsewhere in your code
-            quantity: 1,
-          },
-        ],
+        items:
+          Array.isArray(cart?.items) && cart.items.length > 0
+            ? [
+                ...cart.items.map((item) => ({
+                  product_inventory_id: Number(item.inventory_id),
+                  quantity: Number(item.quantity),
+                })),
+                {
+                  product_inventory_id: Number(id), // Assuming `id` is defined elsewhere
+                  quantity: 1,
+                },
+              ]
+            : [
+                {
+                  product_inventory_id: Number(id), // Assuming `id` is defined elsewhere
+                  quantity: 1,
+                },
+              ],
       };
 
       try {
@@ -87,71 +110,36 @@ const ProductImageGallery = ({
           }
         );
         console.log(response);
+        setLoading(false);
       } catch (error) {
         console.error("Error adding product to cart:", error);
       }
     } else {
-      const formattedData = {
-        items: [
-          {
-            product_inventory_id: id,
-            quantity: 1,
-          },
-        ],
-      };
-      try {
-        const response = await axiosPublic.post(
-          "/api/v1/open/calculate-bill?request-id=1234",
-          formattedData
-        );
+      const existingCartArray = JSON.parse(
+        localStorage.getItem("cart") || "[]"
+      );
 
-        if (response.status === 200) {
-          const responseData = response?.data;
-          const sku = responseData.items[0]?.sku;
+      if (existingCartArray.length === 0) {
+        setLoading(true);
+        const formattedData = {
+          items: [
+            {
+              product_inventory_id: Number(id),
+              quantity: 1,
+            },
+          ],
+        };
 
-          if (!sku) {
-            Swal.fire({
-              icon: "error",
-              title: "SKU Missing",
-              text: "This product does not have a valid SKU.",
-              confirmButtonText: "OK",
-            });
-            return;
-          }
-
-          // Retrieve cart from sessionStorage
-          const existingCartArray =
-            JSON.parse(sessionStorage.getItem("cart")) || [];
-
-          // Check if product is already in cart
-          const isProductInCart = existingCartArray.some((cartItem) =>
-            cartItem.items.some((item) => item.sku === sku)
+        try {
+          const response = await axiosPublic.post(
+            "/api/v1/open/calculate-bill?request-id=1234",
+            formattedData
           );
-
-          if (isProductInCart) {
-            Swal.fire({
-              icon: "info",
-              title: "Already in Cart",
-              text: "This product is already in your cart.",
-              confirmButtonText: "OK",
-            });
-          } else {
-            const updatedCart = [...existingCartArray, responseData];
-
-            sessionStorage.setItem("cart", JSON.stringify(updatedCart));
-            const productIds =
-              JSON.parse(sessionStorage.getItem("productIds")) || [];
-
-            // Check if the productId and SKU pair already exists
-            const isProductIdInList = productIds.some(
-              (item) => item.id === id && item.sku === sku
-            );
-
-            if (!isProductIdInList) {
-              productIds.push({ id: id, sku: sku });
-              sessionStorage.setItem("productIds", JSON.stringify(productIds));
-              localStorage.setItem("productIds", JSON.stringify(productIds));
-            }
+          if (response.status === 200) {
+            setLoading(false);
+            const responseData = response?.data;
+            const updatedCart = [responseData];
+            localStorage.setItem("cart", JSON.stringify(updatedCart));
 
             Swal.fire({
               icon: "success",
@@ -160,21 +148,93 @@ const ProductImageGallery = ({
                 0,
                 15
               )} has been added to your cart.`,
-              toast: true, // Enables a small toast notification
-              position: "top-start", // Moves it to the top-left
-              showConfirmButton: false, // Hides the confirm button
-              timer: 2500, // Auto-closes after 3 seconds
-              timerProgressBar: true, // Shows a progress bar
+              toast: true,
+              position: "top-start",
+              showConfirmButton: false,
+              timer: 2500,
+              timerProgressBar: true,
             });
           }
-        } else {
-          console.error("Failed to add to cart");
+        } catch (error) {
+          console.error("Error adding product to cart:", error);
         }
-      } catch (error) {
-        console.error("Error adding product to cart:", error);
+      } else {
+        // Check if any item in the cart has the same SKU
+        const matchSku = existingCartArray?.some((cart) =>
+          cart?.items?.some((item) => item.inventory_id === id)
+        );
+
+        if (matchSku) {
+          Swal.fire({
+            icon: "error",
+            title: "Product already here!",
+            text: "This product is already in the cart",
+            confirmButtonText: "OK",
+          });
+          return;
+        } else {
+          setLoading(true);
+          const formattedData = {
+            items: [
+              ...(Array.isArray(existingCartArray) &&
+              existingCartArray.length > 0
+                ? existingCartArray.flatMap((cart) =>
+                    Array.isArray(cart.items)
+                      ? cart.items.map((item) => ({
+                          product_inventory_id: Number(item.inventory_id),
+                          quantity: item.quantity,
+                        }))
+                      : []
+                  )
+                : []),
+              {
+                product_inventory_id: Number(id),
+                quantity: 1,
+              },
+            ],
+          };
+          try {
+            const response = await axiosPublic.post(
+              "/api/v1/open/calculate-bill?request-id=1234",
+              formattedData
+            );
+            if (response.status === 200) {
+              setLoading(false);
+              const responseData = response?.data;
+
+              const updatedCart = [responseData];
+              localStorage.setItem("cart", JSON.stringify(updatedCart));
+              Swal.fire({
+                icon: "success",
+                title: "Added to Cart",
+                text: `${responseData.items[0].product_name?.slice(
+                  0,
+                  15
+                )} has been added to your cart.`,
+                toast: true,
+                position: "top-start",
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+              });
+            }
+          } catch (error) {
+            console.error("Error adding product to cart:", error);
+          }
+        }
       }
     }
-    handleShowDrawer();
+    handleShowDrawer(true);
+  };
+
+  const handleImageThumbnailClick = (imageUrl) => {
+    setCurrentSelectedImage(imageUrl);
+    setCurrentSelectedVideo(""); // Clear video selection
+  };
+
+  const handleVideoThumbnailClick = (videoUrl) => {
+    setCurrentSelectedVideo(videoUrl); // Set the selected video URL
+    setCurrentSelectedImage(""); // Clear image selection
   };
 
   return (
@@ -182,28 +242,30 @@ const ProductImageGallery = ({
       <div className="flex flex-row-reverse justify-evenly lg:items-center">
         {/* Main Product Image and Add to Cart */}
         <div className="w-3/4 sm:w-[380px] md:w-[430px] space-y-3">
-          {currentImages && currentImages.length > 0 ? (
-            <div className="">
-              <ProductImageZoom selectedImage={selectedImage} />
-            </div>
+          {currentSelectedVideo || currentSelectedImage ? (
+            <ProductImageZoom
+              selectedImage={currentSelectedImage}
+              selectedVideo={currentSelectedVideo}
+            />
           ) : (
             <div className="flex justify-center h-[430px] items-center">
               <h1 className="text-lg font-semibold text-gray-500">
-                There are no visible images
+                No images or videos available
               </h1>
             </div>
           )}
+
           <button
             onClick={() => handleAddToCart()}
-            className="text-center w-full px-6 py-3 bg-[#317ff3] hover:bg-[#31b2f3] text-lg font-semibold text-white shadow-lg transition-all transform hover:scale-105 cursor-pointer rounded-lg"
+            className="text-center w-full px-6 py-[6px] md:py-3 bg-[#317ff3] hover:bg-[#31b2f3] text-base md:text-lg font-semibold text-white shadow-lg transition-all transform hover:scale-105 cursor-pointer rounded-lg"
           >
-            Add To Cart
+            {loading ? "Adding to Cart" : "Add To Cart"}
           </button>
         </div>
 
         {/* Image Thumbnails with Navigation Buttons */}
         <div className="flex flex-col items-center space-y-[6px] sm:space-y-3">
-          {currentImages.length > visibleImages && (
+          {currentImages.length + currentVideos.length > visibleItems && (
             <button
               onClick={handlePrev}
               className={`py-[2px] w-[50px] sm:w-[87px] flex justify-center border text-gray-800 text-center font-semibold rounded-lg transition-all transform hover:bg-gray-300 hover:scale-105 duration-200 ease-in-out ${
@@ -214,36 +276,50 @@ const ProductImageGallery = ({
               <FaChevronUp className="text-sm sm:text-xl" />
             </button>
           )}
-
-          <div className="flex flex-col justify-center items-center space-y-2 sm:space-y-3">
+          <div className="space-y-[6px] sm:space-y-3">
             {currentImages
-              .slice(startIndex, startIndex + visibleImages)
-              .map((image) => (
-                <motion.div
-                  key={image?.product_image_id}
-                  whileHover={{ scale: 1.1 }}
-                  className="border-2 border-gray-300 rounded-lg shadow-md"
+              .slice(startIndex, startIndex + visibleItems)
+              .map((image, index) => (
+                <img
+                  key={index}
+                  src={image.image_url}
+                  alt="Product Image Thumbnail"
+                  className="h-[70px] sm:h-[90px] w-[100px] sm:w-[120px] object-cover border-2 cursor-pointer transition-transform transform hover:scale-110 rounded-lg"
+                  onClick={() => handleImageThumbnailClick(image.image_url)}
+                />
+              ))}
+
+            {currentVideos
+              .slice(startIndex, startIndex + visibleItems)
+              .map((video, index) => (
+                <div
+                  key={index}
+                  className="h-[70px] sm:h-[90px] w-[120px] cursor-pointer border-2"
+                  onClick={() => handleVideoThumbnailClick(video.video_url)}
                 >
                   <img
-                    src={image?.image_url || unavailableImage}
-                    onClick={() => handleImageClick(image.image_url)}
-                    loading="lazy"
-                    alt={image.product_image_id}
-                    className="w-[40px] h-[40px] sm:w-[87px] sm:h-[86px] object-cover rounded-md cursor-pointer"
+                    src={`https://img.youtube.com/vi/${
+                      video.video_url.split("v=")[1]
+                    }/0.jpg`}
+                    alt="YouTube Thumbnail"
+                    className="object-cover h-full w-full rounded-lg transition-transform transform hover:scale-110"
                   />
-                </motion.div>
+                </div>
               ))}
           </div>
-
-          {currentImages.length > visibleImages && (
+          {currentImages.length + currentVideos.length > visibleItems && (
             <button
               onClick={handleNext}
               className={`py-[2px] w-[50px] sm:w-[87px] flex justify-center border text-gray-800 text-center font-semibold rounded-lg transition-all transform hover:bg-gray-300 hover:scale-105 duration-200 ease-in-out ${
-                startIndex + visibleImages >= currentImages.length
+                startIndex + visibleItems >=
+                currentImages.length + currentVideos.length
                   ? "cursor-not-allowed"
                   : ""
               }`}
-              disabled={startIndex + visibleImages >= currentImages.length}
+              disabled={
+                startIndex + visibleItems >=
+                currentImages.length + currentVideos.length
+              }
             >
               <FaChevronDown className="text-sm sm:text-xl" />
             </button>
@@ -260,7 +336,7 @@ const ProductImageGallery = ({
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="w-full sm:w-[400px] md:w-[450px] lg:w-[470px] dark:bg-white bg-base-200 shadow-lg h-full overflow-y-auto max-h-full relative"
+            className="w-4/5 sm:w-[400px] md:w-[450px] lg:w-[470px] bg-base-200 shadow-lg h-full max-h-full relative"
             onClick={(e) => e.stopPropagation()}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}

@@ -22,7 +22,6 @@ const AgeCategoryDetails = () => {
   const [filtersVisible, setFiltersVisible] = useState(true);
   const [filtersDrawerVisible, setFiltersDrawerVisible] = useState(false);
   const [page, setPage] = useState(0);
-
   const isFetchingRef = useRef(false);
   const [ageCategories, refetch, isLoading, error] = useAgeCategory(
     minAge,
@@ -30,7 +29,7 @@ const AgeCategoryDetails = () => {
   );
 
   useEffect(() => {
-    window.scrollTo(0, 0); // Scroll to the top of the page when the component mounts
+    window.scrollTo(0, 0);
   }, []);
 
   // Memoize the filtered products for performance
@@ -87,7 +86,6 @@ const AgeCategoryDetails = () => {
     }
   }, [page, refetch, isLoading]);
 
-  // Error handling
   if (error) {
     return (
       <div className="text-center text-red-600">
@@ -102,21 +100,12 @@ const AgeCategoryDetails = () => {
     }
   };
 
-  const clearCategory = () => setSelectedCategory("");
-  const clearBrand = () => setSelectedBrand("");
-  const clearAll = () => {
-    setSelectedCategory("");
-    setSelectedBrand("");
-    setPriceRange([0, 2000]);
-    setSearchTerm("");
-  };
-
   return (
     <div>
       <div className="drawer drawer-end">
         <input id="drawer-toggle" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content">
-          <div className="w-full sm:w-11/12 mx-auto dark:bg-white max-sm:px-2 flex flex-wrap justify-between items-center my-3 px-4 py-2 bg-base-200">
+          <div className="w-full dark:bg-white max-sm:px-2 flex flex-wrap justify-between items-center my-3 px-4 py-2 bg-base-200">
             <div
               onClick={() => setFiltersVisible(!filtersVisible)}
               className="hidden sm:block text-xs sm:text-sm md:text-base lg:text-lg dark:text-black font-semibold text-gray-800 hover:text-gray-600 px-4 py-2 cursor-pointer rounded-lg transition-transform duration-300"
@@ -129,7 +118,6 @@ const AgeCategoryDetails = () => {
             >
               {!filtersDrawerVisible ? "Show Filters" : "Hide Filters"}
             </div>
-
             {filtersDrawerVisible && (
               <div
                 id="overlay"
@@ -137,7 +125,6 @@ const AgeCategoryDetails = () => {
                 className="fixed inset-0 bg-black bg-opacity-50 z-30"
               ></div>
             )}
-
             <div
               className={`fixed top-0 left-0 h-full dark:bg-white bg-white shadow-lg z-40 pt-28 px-3 transform ${
                 filtersDrawerVisible ? "translate-x-0" : "-translate-x-full"
@@ -155,35 +142,21 @@ const AgeCategoryDetails = () => {
                 setSelectedCategory={setSelectedCategory}
               />
             </div>
-
             <div className="flex items-center gap-2 sm:gap-3">
               <h1 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-700">
-                Sort By:
+                Sort By price:
               </h1>
               <select
                 className="p-1 md:p-2 rounded-lg bg-base-100 dark:bg-white border border-gray-200 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-gray-300"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
               >
-                <option value="" className="text-gray-700 dark:text-black">
-                  Featured
-                </option>
-                <option
-                  value="highToLow"
-                  className="text-gray-700 dark:text-black"
-                >
-                  High to Low
-                </option>
-                <option
-                  value="lowToHigh"
-                  className="text-gray-700 dark:text-black"
-                >
-                  Low to High
-                </option>
+                <option value="">Featured</option>
+                <option value="highToLow">High to Low</option>
+                <option value="lowToHigh">Low to High</option>
               </select>
             </div>
           </div>
-
           <div className="flex justify-center gap-1 sm:gap-3 md:gap-5">
             {filtersVisible && (
               <div className="hidden sm:flex flex-col bg-base-100 dark:bg-white w-full sm:w-1/3 md:w-1/4 py-6 space-y-4 px-3 md:px-5 lg:shadow-lg">
@@ -199,46 +172,10 @@ const AgeCategoryDetails = () => {
                 />
               </div>
             )}
-            <div className="flex-1 max-sm:px-1">
+            <div className="flex-1 max-sm:px-1 sm:pr-1 md:pr-2 lg:pr-4">
               {filteredProducts.length ? (
                 <div className="pb-5 max-sm:px-1">
-                  <div className="flex items-center space-x-2">
-                    {selectedBrand && (
-                      <div className="flex items-center bg-gray-200 dark:bg-white text-sm px-[10px] py-1 rounded-full">
-                        {selectedBrand}
-                        <button
-                          onClick={clearBrand}
-                          className="ml-2 text-red-500 hover:text-red-700"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    )}
-                    {selectedCategory && (
-                      <div className="flex items-center bg-gray-200 dark:bg-white text-sm px-[10px] py-1 rounded-full">
-                        {selectedCategory}
-                        <button
-                          onClick={clearCategory}
-                          className="ml-2 text-red-500 hover:text-red-700"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    )}
-                    {(selectedBrand ||
-                      selectedCategory ||
-                      searchTerm ||
-                      priceRange[0] !== 0 ||
-                      priceRange[1] !== 2000) && (
-                      <button
-                        onClick={clearAll}
-                        className="flex items-center bg-gray-200 dark:bg-white text-sm px-[10px] py-1 rounded-full"
-                      >
-                        Clear All
-                      </button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-5">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mt-5">
                     {filteredProducts.map((product) => (
                       <div key={product.id}>
                         <Card product={product} />

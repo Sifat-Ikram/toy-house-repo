@@ -34,9 +34,8 @@ const BrandDetails = () => {
 
         const matchesAge =
           !selectedAge ||
-          (Array.isArray(selectedAge) &&
-            selectedAge[0] <= prod?.maximum_age_range &&
-            selectedAge[1] >= prod?.minimum_age_range);
+          (prod?.minimum_age_range >= selectedAge[0] &&
+            prod?.maximum_age_range <= selectedAge[1]);
 
         const matchesPrice =
           !priceRange ||
@@ -116,16 +115,6 @@ const BrandDetails = () => {
     return <p className="text-center text-red-500">Product not found</p>;
   }
 
-  const clearCategory = () => setSelectedCategory("");
-  const clearAll = () => {
-    setSelectedCategory("");
-    setSelectedAge("");
-    setPriceRange([0, 2000]);
-    setSearchTerm("");
-    setFiltersVisible(true);
-    setFiltersDrawerVisible(false);
-  };
-
   return (
     <div className="dark:text-black dark:bg-white">
       <div className="drawer drawer-end">
@@ -137,8 +126,8 @@ const BrandDetails = () => {
             </h2>
 
             <p className="text-center text-gray-700 dark:text-black text-sm md:text-lg lg:text-xl max-w-2xl mx-auto">
-              Explore our curated collection of high-quality toys designed
-              to inspire learning and laughter in every child.
+              Explore our curated collection of high-quality toys designed to
+              inspire learning and laughter in every child.
             </p>
           </div>
           <div className="w-full max-sm:px-2 dark:bg-white flex flex-wrap justify-between items-center my-3 px-4 py-2 bg-base-200">
@@ -184,9 +173,9 @@ const BrandDetails = () => {
             </motion.div>
 
             {/* Sort By Section */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 ">
               <h1 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-700 dark:text-black">
-                Sort By:
+                Sort By Price:
               </h1>
               <select
                 className="p-1 md:p-2 rounded-lg bg-base-100 dark:text-black dark:bg-white border border-gray-200 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-gray-300"
@@ -212,9 +201,9 @@ const BrandDetails = () => {
             </div>
           </div>
 
-          <div className="flex justify-center gap-1 sm:gap-3 md:gap-5">
+          <div className="flex justify-center bg-white dark:bg-white gap-1 sm:gap-3 md:gap-5">
             {filtersVisible && (
-              <div className="hidden sm:flex flex-col bg-base-100 sticky top-0 w-full sm:w-1/3 md:w-1/4 py-6 space-y-4 px-3 md:px-5 lg:shadow-lg">
+              <div className="hidden sm:flex flex-col bg-white dark:bg-white sticky top-0 w-full sm:w-1/3 md:w-1/4 py-6 space-y-4 px-3 md:px-5 lg:shadow-lg">
                 <BrandFilter
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
@@ -229,35 +218,8 @@ const BrandDetails = () => {
             )}
             <div className="flex-1">
               {filteredProducts.length ? (
-                <div className="max-sm:px-1">
-                  <div className="flex items-center space-x-2">
-                    {/* Render selected brand */}
-                    {selectedCategory.length > 0 && (
-                      <div className="flex items-center bg-gray-200 text-sm px-[10px] py-1 rounded-full">
-                        {selectedCategory}
-                        <button
-                          onClick={clearCategory}
-                          className="ml-2 text-red-500 hover:text-red-700"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Clear All button */}
-                    {(selectedAge ||
-                      searchTerm ||
-                      priceRange[0] !== 0 ||
-                      priceRange[1] !== 2000) && (
-                      <button
-                        onClick={clearAll}
-                        className="flex items-center bg-gray-200 text-sm px-[10px] py-1 rounded-full"
-                      >
-                        Clear All
-                      </button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-5">
+                <div className="max-sm:px-1 pb-5 sm:pr-1 md:pr-2 lg:pr-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mt-5">
                     {filteredProducts.map((product) => (
                       <div key={product.id}>
                         <Card product={product} />

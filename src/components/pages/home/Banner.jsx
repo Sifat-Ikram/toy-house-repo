@@ -24,18 +24,14 @@ const Banner = () => {
           </p>
         </div>
         <div className="flex justify-center items-center sm:justify-start gap-1 sm:gap-4">
+        <Link to={"/products"}>
           <motion.button
             whileTap={{ scale: 0.95 }}
             className="px-[12px] md:px-5 lg:px-6 py-1 sm:py-[6px] md:py-2 lg:py-3 text-nowrap bg-[#317ff3] hover:bg-[#31b2f3] banner-button sm:text-base md:text-lg font-semibold text-white rounded-full shadow-lg transition-all cursor-pointer"
           >
-            <Link to={"/products"}>Shop Now</Link>
+            Shop Now
           </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            className="px-[12px] md:px-5 lg:px-6 py-1 sm:py-[6px] md:py-2 lg:py-3 text-nowrap bg-[#317ff3] hover:bg-[#31b2f3] banner-button sm:text-base md:text-lg font-semibold text-white rounded-full shadow-lg transition-all cursor-pointer"
-          >
-            Best Sellers
-          </motion.button>
+          </Link>
         </div>
       </div>
 

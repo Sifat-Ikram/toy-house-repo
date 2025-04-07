@@ -9,7 +9,6 @@ import Contact from "./components/pages/contact/Contact.jsx";
 import Home from "./components/pages/home/Home.jsx";
 import Register from "./components/pages/sign/Register.jsx";
 import Login from "./components/pages/sign/Login.jsx";
-import PasswordReset from "./components/pages/sign/PasswordReset.jsx";
 import SearchResult from "./components/pages/search-result/SearchResult.jsx";
 import ProductDetails from "./components/pages/product-details/ProductDetails.jsx";
 import ShoppingCart from "./components/pages/cart/ShoppingCart.jsx";
@@ -22,6 +21,9 @@ import CheckoutPage from "./components/pages/checkout_page/CheckoutPage.jsx";
 import AuthProvider from "./provider/AuthProvider.jsx";
 import PrivacyPolicy from "./components/pages/privacy-policy/PrivacyPolicy.jsx";
 import UserProfile from "./components/pages/user_profile/UserProfile.jsx";
+import PasswordReset from "./components/pages/sign/PasswordReset.jsx";
+import OtpVerification from "./components/pages/sign/OtpVerification.jsx";
+import NewPassword from "./components/pages/sign/NewPassword.jsx";
 
 const queryClient = new QueryClient();
 const router = createBrowserRouter([
@@ -93,8 +95,16 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/forgot-password",
+    path: "/forgotPassword",
     element: <PasswordReset />,
+  },
+  {
+    path: "/OtpVerification",
+    element: <OtpVerification />,
+  },
+  {
+    path: "/newPassword",
+    element: <NewPassword />,
   },
 ]);
 

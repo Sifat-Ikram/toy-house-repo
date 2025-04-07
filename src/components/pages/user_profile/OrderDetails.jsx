@@ -9,7 +9,7 @@ const OrderDetails = ({ id }) => {
         {orderDetails?.items?.length > 0 ? (
           orderDetails.items.map((order) => (
             <div
-              key={order?.sku}
+              key={order?.inventory_id}
               className="py-[10px] sm:p-3 flex flex-col border-y-[0.5px] border-solid md:flex-row justify-between items-start md:items-center dark:bg-[#F5F5F5] dark:text-black gap-[10px] md:gap-2"
             >
               {/* Product Image & Details */}

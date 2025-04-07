@@ -3,39 +3,6 @@ import { FaMinus, FaPlus } from "react-icons/fa";
 import useBrands from "../../hooks/useBrands";
 import useCategory from "../../hooks/useCategory";
 
-// Reusable Filter Section Component
-const FilterSection = ({ title, isOpen, toggle, options, value, onChange }) => (
-  <div>
-    <label
-      onClick={toggle}
-      className="text-xs cursor-pointer flex justify-between items-center sm:text-sm lg:text-base font-bold mb-2"
-    >
-      <h1>{title}</h1>
-      <h1>{isOpen ? <FaMinus /> : <FaPlus />}</h1>
-    </label>
-    {isOpen && (
-      <div className="space-y-3">
-        {options.map(({ label, value: range }) => (
-          <label
-            key={label}
-            className="flex items-center space-x-3 cursor-pointer"
-          >
-            <input
-              type="radio"
-              name={title.toLowerCase()}
-              value={JSON.stringify(range)}
-              checked={JSON.stringify(value) === JSON.stringify(range)}
-              onChange={() => onChange(range)}
-              className="radio"
-            />
-            <span className="text-xs sm:text-sm lg:text-base">{label}</span>
-          </label>
-        ))}
-      </div>
-    )}
-  </div>
-);
-
 const ProductFilters = ({
   searchTerm,
   setSearchTerm,
@@ -82,18 +49,18 @@ const ProductFilters = ({
 
   // Toggle Price Range selection
   const handlePriceRangeChange = (range) => {
-    // Check if the selected range is the same as the current price range, then reset if true
     setPriceRange(
-      JSON.stringify(priceRange) === JSON.stringify(range)
+      priceRange[0] === range[0] && priceRange[1] === range[1]
         ? [0, Infinity]
         : range
     );
   };
 
-  // Toggle Age Group selection
   const handleAgeGroupChange = (range) => {
     setSelectedAge(
-      JSON.stringify(selectedAge) === JSON.stringify(range) ? null : range
+      selectedAge && selectedAge === range[0] && selectedAge === range[1]
+        ? null
+        : range
     );
   };
 
@@ -148,25 +115,77 @@ const ProductFilters = ({
         </select>
       </div>
 
-      {/* Price Range Filter */}
-      <FilterSection
-        title="Price Range"
-        isOpen={isPriceOpen}
-        toggle={togglePriceFilter}
-        options={priceRanges}
-        value={priceRange}
-        onChange={handlePriceRangeChange}
-      />
+      {/* 🔹 Price Range Filter */}
+      <div className="dark:text-black dark:bg-white">
+        <label
+          onClick={togglePriceFilter}
+          className="text-xs cursor-pointer flex justify-between items-center sm:text-sm lg:text-base font-bold mb-2"
+        >
+          <h1>Price Range</h1>
+          <h1>{isPriceOpen ? <FaMinus /> : <FaPlus />}</h1>
+        </label>
+        {isPriceOpen && (
+          <div className="space-y-3">
+            {priceRanges.map(({ label, value }) => (
+              <label
+                key={label}
+                className="flex items-center space-x-3 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  name="priceRange"
+                  value={JSON.stringify(value)}
+                  checked={
+                    priceRange[0] === value[0] && priceRange[1] === value[1]
+                  }
+                  onChange={() => handlePriceRangeChange(value)}
+                  className="checkbox"
+                />
+                <span className="text-xs sm:text-sm lg:text-base">
+                  BDT {label}
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
 
-      {/* Age Group Filter */}
-      <FilterSection
-        title="Age Group"
-        isOpen={isAgeOpen}
-        toggle={toggleAgeFilter}
-        options={ageGroups}
-        value={selectedAge}
-        onChange={handleAgeGroupChange}
-      />
+      {/* 🔹 Age Group Filter */}
+      <div className="dark:text-black dark:bg-white">
+        <label
+          onClick={toggleAgeFilter}
+          className="text-xs cursor-pointer flex justify-between items-center sm:text-sm lg:text-base font-bold mb-2"
+        >
+          <h1>Age Group</h1>
+          <h1>{isAgeOpen ? <FaMinus /> : <FaPlus />}</h1>
+        </label>
+        {isAgeOpen && (
+          <div className="space-y-3">
+            {ageGroups.map(({ label, range }) => (
+              <label
+                key={label}
+                className="flex items-center space-x-3 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  name="age"
+                  value={JSON.stringify(range)}
+                  checked={
+                    selectedAge &&
+                    selectedAge[0] === range[0] &&
+                    selectedAge[1] === range[1]
+                  }
+                  onChange={() => handleAgeGroupChange(range)}
+                  className="checkbox"
+                />
+                <span className="text-xs sm:text-sm lg:text-base">
+                  {label} years
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

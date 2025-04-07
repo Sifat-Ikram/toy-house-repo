@@ -1,22 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
 import useAxiosPublic from "./useAxiosPublic";
+import { useContext } from "react";
+import { AuthContext } from "../../provider/AuthProvider";
 
 const useUserOrders = () => {
   const axiosPublic = useAxiosPublic();
+  const { user } = useContext(AuthContext);
 
   const {
-    data: allOrders = [],
-    refetch: allOrderRefetch,
-    isLoading: allOrderIsLoading,
-    error: allOrderError,
+    data: userOrders = [],
+    refetch: allUserOrdersRefetch,
+    isLoading: allUserOrdersIsLoading,
+    error: allUserOrdersError,
   } = useQuery({
-    queryKey: ["allOrder"],
+    queryKey: ["userOrders", user],
     queryFn: async () => {
       const res = await axiosPublic.get(
-        "/api/v1/admin/order/get/all?page=0&size=3000&request-id=1234"
+        "/api/v1/user/get/orders?page-number=0&page-size=100&request-id=1234",
+        {
+          headers: {
+            Authorization: `Bearer ${user}`, // Adjust based on your context structure
+            "Content-Type": "application/json",
+          },
+        }
       );
       return res.data.orders;
     },
+    enabled: !!user,
     onError: (err) => {
       console.error("Error fetching category data:", err);
     },
@@ -25,7 +35,12 @@ const useUserOrders = () => {
     cacheTime: 0, // Disable cache
   });
 
-  return [allOrders, allOrderRefetch, allOrderIsLoading, allOrderError];
+  return [
+    userOrders,
+    allUserOrdersRefetch,
+    allUserOrdersIsLoading,
+    allUserOrdersError,
+  ];
 };
 
 export default useUserOrders;

@@ -74,7 +74,7 @@
 /* Media query for 475px (larger mobile devices) */
 @media screen and (min-width: 200px) {
   .cat-width {
-    width: 210px;
+    width: 200px;
     margin-top: -6px;
   }
 
@@ -84,7 +84,7 @@
   }
 
   .cat-text {
-    font-size: 8px;
+    font-size: 9px;
   }
 
   .banner-welcome {

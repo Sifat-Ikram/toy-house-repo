@@ -39,7 +39,7 @@ const App = () => {
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="w-full sm:w-[400px] md:w-[450px] lg:w-[470px] bg-base-200 shadow-lg h-full overflow-y-auto max-h-full relative"
+            className="w-4/5 sm:w-[400px] md:w-[450px] lg:w-[470px] bg-base-200 shadow-lg h-full max-h-full relative"
             onClick={(e) => e.stopPropagation()}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}

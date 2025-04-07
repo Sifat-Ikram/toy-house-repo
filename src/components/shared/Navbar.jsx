@@ -21,18 +21,23 @@ const Navbar = ({ handleShowDrawer }) => {
   const [categories] = useCategory();
   const [brands] = useBrands();
   const [showIcon, setShowIcon] = useState(true);
-  const [cartLength, setCartLength] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { logout, user } = useContext(AuthContext);
   const [isHoveredCategory, setIsHoveredCategory] = useState(false);
   const [isHoveredBrand, setIsHoveredBrand] = useState(false);
+  const [mobileNavLinksClose, setMobileNavLinksClose] = useState(false);
 
   const closeDropdownCategory = () => {
     setIsHoveredCategory(false);
   };
   const closeDropdownBrand = () => {
     setIsHoveredBrand(false);
+  };
+
+  const handleLinkClick = () => {
+    // Ensure the dropdowns are closed when any link is clicked
+    setMobileNavLinksClose(false); // This will close the entire mobile nav
   };
 
   const handleSearchSubmit = useCallback(
@@ -69,15 +74,10 @@ const Navbar = ({ handleShowDrawer }) => {
     };
   }, [isSearchOpen, handleOutsideClick]);
 
-  useEffect(() => {
-    const cart = JSON.parse(sessionStorage.getItem("cart")) || [];
-    setCartLength(cart.length);
-  }, []);
-
   const navLinks = (
     <>
       <li
-        className="font-poppins text-[8px] sm:text-sm lg:text-lg"
+        className="font-poppins text-[8px] font-normal sm:text-xs md:text-sm lg:text-base"
         onMouseEnter={() => setIsHoveredCategory(true)}
         onMouseLeave={() => setIsHoveredCategory(false)}
       >
@@ -122,7 +122,7 @@ const Navbar = ({ handleShowDrawer }) => {
         )}
       </li>
       <li
-        className="font-poppins text-[8px] sm:text-sm lg:text-lg"
+        className="font-poppins text-[8px] font-normal sm:text-xs md:text-sm lg:text-base"
         onMouseEnter={() => setIsHoveredBrand(true)}
         onMouseLeave={() => setIsHoveredBrand(false)}
       >
@@ -130,12 +130,12 @@ const Navbar = ({ handleShowDrawer }) => {
           Brands
         </Link>
         {isHoveredBrand && (
-          <ul className="absolute md:mt-4 lg:mt-[26px] overflow-y-auto bg-white rounded-box z-[1] w-auto p-2 lg:py-5 h-auto grid md:grid-cols-4 lg:grid-cols-5 gap-y-2 lg:gap-y-5 gap-x-2 shadow">
+          <ul className="absolute md:mt-4 lg:mt-[26px] overflow-y-auto bg-white rounded-box z-[1] w-auto p-2 lg:py-5 h-auto flex flex-wrap gap-y-2 lg:gap-y-5 gap-x-2 shadow">
             {brands?.length ? (
               brands.map((brand) => (
                 <li
                   key={brand.brand_id}
-                  className="cursor-pointer  w-[130px] rounded-md flex flex-col items-center hover:shadow"
+                  className="cursor-pointer w-[130px] rounded-md flex flex-col items-center hover:shadow"
                 >
                   <Link
                     onClick={closeDropdownBrand}
@@ -166,7 +166,13 @@ const Navbar = ({ handleShowDrawer }) => {
           </ul>
         )}
       </li>
-      <li className="cursor-pointer hover:underline text-nowrap font-poppins text-[8px] sm:text-sm lg:text-lg">
+      <li className="cursor-pointer hover:underline text-nowrap font-poppins text-[8px] font-normal sm:text-xs md:text-sm lg:text-base">
+        <Link to="/categoryDetail/35">Combo Offers</Link>
+      </li>
+      <li className="cursor-pointer hover:underline text-nowrap font-poppins text-[8px] font-normal sm:text-xs md:text-sm lg:text-base">
+        <Link to="/categoryDetail/36">Wholesale</Link>
+      </li>
+      <li className="cursor-pointer hover:underline text-nowrap font-poppins text-[8px] font-normal sm:text-xs md:text-sm lg:text-base">
         <Link to="/aboutUs">About Us</Link>
       </li>
     </>
@@ -174,102 +180,98 @@ const Navbar = ({ handleShowDrawer }) => {
 
   const mobileNavLinks = (
     <>
-      <li className="relative dropdown dropdown-right dropdown-hover">
-        <div
-          tabIndex={0}
-          role="button"
-          href="#"
-          className="font-poppins uppercase dark:text-black text-sm sm:text-lg py-2 btn-category text-left hover:text-black"
-        >
+      <li
+        className="relative"
+        onMouseEnter={() => setIsHoveredCategory(true)}
+        onMouseLeave={() => setIsHoveredCategory(false)}
+      >
+        <span className="cursor-pointer font-poppins text-left uppercase dark:text-black text-xs sm:text-lg py-1 sm:py-2 btn-category hover:text-black">
           Categories
-        </div>
-        <ul className="dropdown-content bg-base-100 dark:bg-white py-[5px] sm:py-3 grid grid-cols-4 cat-width sm:w-[444px] gap-2 sm:gap-y-5 flex-wrap h-auto shadow">
-          {categories?.length ? (
-            categories.map((category) => (
-              <li
-                key={category.category_id}
-                className="cursor-pointer rounded-md flex flex-col items-center hover:shadow"
-              >
-                <Link
-                  onClick={() => handleOutsideClick()}
-                  to={`/categoryDetail/${category.category_id}`}
-                  className="p-1 sm:p-2 space-y-1 text-center"
+        </span>
+        {isHoveredCategory && (
+          <ul className="absolute left-full overflow-y-visible top-0 bg-base-100 dark:bg-white py-[5px] sm:py-3 grid grid-cols-3 cat-width sm:w-[444px] gap-1 sm:gap-y-5 flex-wrap h-auto shadow">
+            {categories?.length ? (
+              categories.map((category) => (
+                <li
+                  key={category.category_id}
+                  className="cursor-pointer rounded-md flex flex-col items-center hover:shadow"
                 >
-                  <img
-                    src={category.category_logo_url}
-                    alt={`${category.name}`}
-                    className="cat-image sm:h-12 sm:w-12 mx-auto rounded-full bg-base-200"
-                  />
-                  <h1 className="font-poppins dark:text-black cat-text sm:text-sm">
-                    {category.name}
-                  </h1>
-                </Link>
-              </li>
-            ))
-          ) : (
-            <div className="flex justify-center items-center">
-              <div
-                className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full"
-                role="status"
-              >
-                <span className="visually-hidden">Loading...</span>
+                  <Link
+                    to={`/categoryDetail/${category.category_id}`}
+                    className="space-y-1 text-center"
+                    onClick={closeDropdownCategory}
+                  >
+                    <img
+                      src={category.category_logo_url}
+                      alt={category.name}
+                      className="cat-image sm:h-12 sm:w-12 mx-auto rounded-full"
+                    />
+                    <h1 className="font-poppins dark:text-black cat-text sm:text-sm">
+                      {category.name}
+                    </h1>
+                  </Link>
+                </li>
+              ))
+            ) : (
+              <div className="flex justify-center items-center">
+                <span className="loading loading-spinner w-6 h-6"></span>
               </div>
-            </div>
-          )}
-        </ul>
-      </li>
-      <li className="relative dropdown dropdown-right dropdown-hover">
-        <div
-          tabIndex={0}
-          role="button"
-          href="#"
-          className="font-poppins text-left uppercase dark:text-black text-sm sm:text-lg py-2 btn-category hover:text-black"
-        >
-          Brands
-        </div>
-        <ul className="dropdown-content bg-base-100 dark:bg-white py-[5px] sm:py-3 grid grid-cols-4 cat-width sm:w-[444px] gap-2 sm:gap-y-5 flex-wrap h-auto shadow">
-          {brands?.length ? (
-            brands.map((brand) => (
-              <li
-                key={brand.brand_id}
-                className="cursor-pointer rounded-md flex flex-col items-center hover:shadow"
-              >
-                <Link
-                  onClick={() => handleOutsideClick()}
-                  to={`/brandDetail/${brand.brand_id}`}
-                  className="p-1 sm:p-2 space-y-1 text-center"
-                >
-                  <img
-                    src={brand?.brand_logo_url}
-                    alt={brand.name}
-                    className="cat-image sm:h-12 sm:w-12 mx-auto rounded-full bg-base-200"
-                  />
-                  <h1 className="font-poppins dark:text-black cat-text sm:text-base">
-                    {brand.name}
-                  </h1>
-                </Link>
-              </li>
-            ))
-          ) : (
-            <div className="flex justify-center items-center">
-              <div
-                className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full"
-                role="status"
-              >
-                <span className="visually-hidden">Loading...</span>
-              </div>
-            </div>
-          )}
-        </ul>
+            )}
+          </ul>
+        )}
       </li>
       <li
-        onClick={() => handleShowDrawer()}
-        className="font-poppins text-left uppercase cursor-pointer dark:text-black text-sm sm:text-lg py-2 btn-category hover:text-black"
+        className="relative"
+        onMouseEnter={() => setIsHoveredBrand(true)}
+        onMouseLeave={() => setIsHoveredBrand(false)}
       >
-        Cart
+        <span className="cursor-pointer font-poppins text-left uppercase dark:text-black text-xs sm:text-lg py-1 sm:py-2 btn-category hover:text-black">
+          Brands
+        </span>
+        {isHoveredBrand && (
+          <ul className="absolute left-full top-full bg-base-100 -mt-3 dark:bg-white py-[5px] sm:py-3 grid grid-cols-3 cat-width sm:w-[444px] gap-2 sm:gap-y-5 flex-wrap h-auto shadow">
+            {brands?.length ? (
+              brands.map((brand) => (
+                <li
+                  key={brand.brand_id}
+                  className="cursor-pointer rounded-md flex flex-col items-center hover:shadow"
+                >
+                  <Link
+                    to={`/brandDetail/${brand.brand_id}`}
+                    className="p-1 sm:p-2 space-y-1 text-center"
+                    onClick={closeDropdownBrand}
+                  >
+                    <img
+                      src={brand.brand_logo_url}
+                      alt={brand.name}
+                      className="cat-image sm:h-12 sm:w-12 mx-auto rounded-full bg-base-200"
+                    />
+                    <h1 className="font-poppins dark:text-black cat-text sm:text-base">
+                      {brand.name}
+                    </h1>
+                  </Link>
+                </li>
+              ))
+            ) : (
+              <div className="flex justify-center items-center">
+                <span className="loading loading-spinner w-8 h-8"></span>
+              </div>
+            )}
+          </ul>
+        )}
       </li>
-      <li className="font-poppins text-left text-nowrap uppercase dark:text-black text-sm sm:text-lg py-2 btn-category hover:text-black">
-        <Link onClick={() => handleOutsideClick()} to="/aboutUs">
+      <li className="font-poppins text-left text-nowrap uppercase dark:text-black text-xs sm:text-lg py-1 sm:py-2 btn-category hover:text-black">
+        <Link onClick={handleLinkClick} to="/categoryDetail/35">
+          Combo Offers
+        </Link>
+      </li>
+      <li className="font-poppins text-left text-nowrap uppercase dark:text-black text-xs sm:text-lg py-1 sm:py-2 btn-category hover:text-black">
+        <Link onClick={handleLinkClick} to="/categoryDetail/36">
+          Wholesale
+        </Link>
+      </li>
+      <li className="font-poppins text-left text-nowrap uppercase dark:text-black text-xs sm:text-lg py-1 sm:py-2 btn-category hover:text-black">
+        <Link onClick={handleLinkClick} to="/aboutUs">
           About Us
         </Link>
       </li>
@@ -288,12 +290,15 @@ const Navbar = ({ handleShowDrawer }) => {
           <div className="relative md:hidden">
             <div className="relative group py-5">
               <IoMenu
+                onClick={() => setMobileNavLinksClose(true)}
                 role="button"
-                className="bg-transparent text-4xl border-transparent inline-flex items-center ml-2 sm:ml-3"
+                className="bg-transparent text-4xl border-transparent inline-flex items-center"
               />
-              <ul className="bg-base-100 dark:bg-white rounded-md z-10 mt-5 -ml-2 space-y-2 left-0 max-sm:px-1 pt-2 pb-5 shadow absolute hidden group-hover:flex flex-col">
-                {mobileNavLinks}
-              </ul>
+              {mobileNavLinksClose && (
+                <ul className="bg-base-100 dark:bg-white rounded-md z-10 mt-5 space-y-2 -left-2 max-sm:px-1 py-2 shadow absolute hidden group-hover:flex flex-col">
+                  {mobileNavLinks}
+                </ul>
+              )}
             </div>
           </div>
           <div className="hidden md:block">
@@ -306,7 +311,7 @@ const Navbar = ({ handleShowDrawer }) => {
             </Link>
           </div>
           <div className="hidden md:flex lg:hidden">
-            <ul className="flex justify-center items-center mt-2 md:gap-3 px-1">
+            <ul className="flex justify-center items-center md:gap-3">
               {navLinks}
             </ul>
           </div>
@@ -317,11 +322,11 @@ const Navbar = ({ handleShowDrawer }) => {
               <img src={logo} alt="Toy House Logo" className="h-[60px]" />
             </Link>
           </div>
-          <div className="hidden lg:flex justify-center items-center gap-[90px]">
-            <ul className="flex justify-center items-center gap-9">
+          <div className="hidden justify-center items-center gap-[30px] lg:flex">
+            <ul className="flex justify-center items-center gap-7">
               {navLinks}
             </ul>
-            <div className="relative">
+            {/* <div className="relative">
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -337,53 +342,43 @@ const Navbar = ({ handleShowDrawer }) => {
                   showIcon ? "opacity-100" : "opacity-0"
                 }`}
               />
-            </div>
+            </div> */}
           </div>
         </div>
         <div className="flex justify-center items-center gap-2 sm:gap-3 sm:pr-3 md:pr-0">
           <IoSearchOutline
             className={` ${
               isSearchOpen ? "hidden" : "block"
-            } font-semibold text-[14px] mt-[2px] sm:text-xl md:text-2xl cursor-pointer rounded-full transition-all duration-300 ease-in-out hover:scale-110 lg:hidden`}
+            } font-semibold text-[14px] sm:text-base lg:text-xl mt-[2px] cursor-pointer rounded-full transition-all duration-300 ease-in-out hover:scale-110`}
             onClick={() => {
               handleSearchClick();
             }}
           />
-          <button
-            onClick={() => handleShowDrawer()}
-            className="relative block max-sm:hidden"
-          >
-            <IoCartOutline className="font-semibold text-[22px] md:text-2xl rounded-full transition-all duration-300 ease-in-out hover:scale-110" />
+          <button onClick={() => handleShowDrawer()} className="relative block">
+            <IoCartOutline className="font-semibold text-[14px] sm:text-base lg:text-xl mt-[2px] rounded-full transition-all duration-300 ease-in-out hover:scale-110" />
           </button>
           <ul className="flex items-center space-x-1 sm:space-x-[10px]">
             {user ? (
               <>
-                <li onClick={() => handleLogout()}>
-                  <span className="font-poppins text-sm sm:text-base cursor-pointer">
-                    Logout
-                  </span>
-                </li>
                 <li>
                   <Link
                     to={"/userProfile"}
-                    className="font-poppins text-sm sm:text-base cursor-pointer"
+                    className="font-poppins text-xs sm:text-sm lg:text-base cursor-pointer"
                   >
                     Profile
                   </Link>
+                </li>
+                <li onClick={() => handleLogout()}>
+                  <span className="font-poppins text-xs sm:text-sm lg:text-base cursor-pointer">
+                    Logout
+                  </span>
                 </li>
               </>
             ) : (
               <>
                 <li>
-                  <Link to="/register" className="flex items-center gap-4">
-                    <span className="font-poppins text-sm sm:text-base">
-                      Register
-                    </span>
-                  </Link>
-                </li>
-                <li>
                   <Link to="/logIn" className="flex items-center gap-4">
-                    <span className="font-poppins text-sm sm:text-base">
+                    <span className="font-poppins text-xs sm:text-sm lg:text-base">
                       Login
                     </span>
                   </Link>
@@ -397,7 +392,7 @@ const Navbar = ({ handleShowDrawer }) => {
         {isSearchOpen && (
           <div
             id="overlay"
-            className="relative w-3/5 mx-auto py-5"
+            className="relative w-3/5 mx-auto pb-5"
             onClick={(e) => handleOutsideClick(e)}
           >
             <input
@@ -408,10 +403,10 @@ const Navbar = ({ handleShowDrawer }) => {
               onKeyDown={(e) => handleSearchSubmit(e)}
               ref={searchRef}
               type="text"
-              className="border-[1px] border-solid bg-transparent rounded-full border-black px-3 py-1 w-full"
+              className="border-[1px] border-solid bg-transparent rounded-full bg-white border-black px-3 py-1 w-full"
             />
             {showIcon && (
-              <IoSearchOutline className="text-[22px] absolute top-7 left-1 cursor-pointer" />
+              <IoSearchOutline className="text-[22px] absolute top-2 left-1 cursor-pointer" />
             )}
           </div>
         )}
