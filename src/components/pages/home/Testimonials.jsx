@@ -19,21 +19,21 @@ const Testimonials = () => {
     afterChange: (index) => setCurrentIndex(index),
     responsive: [
       { breakpoint: 1700, settings: { slidesToShow: 2 } }, // Tablet and larger devices
-      { breakpoint: 768, settings: { slidesToShow: 3 } }, // Mobile and tablet
+      { breakpoint: 769, settings: { slidesToShow: 2 } }, // Mobile and tablet
       { breakpoint: 510, settings: { slidesToShow: 2 } }, // Portrait mobile
       { breakpoint: 315, settings: { slidesToShow: 1 } }, // Mobile (smaller screens)
     ],
   };
 
   return (
-    <div className="relative z-30 w-full flex flex-col lg:flex-row items-center bg-[#31b2f3] h-full max-lg:space-y-5 lg:space-x-5 justify-center bg-no-repeat pt-14 px-6 overflow-hidden">
+    <div className="w-full flex flex-col lg:flex-row items-center bg-[#31b2f3] h-full space-y-5 sm:space-y-8 lg:space-x-5 justify-center bg-no-repeat py-10 md:py-14 lg:py-20 px-6 overflow-hidden">
       {/* Text Section - 40% Width */}
-      <div className="w-full lg:w-2/5 text-center lg:text-left mb-6 lg:mb-0">
+      <div className="w-full lg:w-2/5 text-center lg:text-left lg:mb-0 flex items-center justify-center">
         <div className="w-11/12 mx-auto">
           <h1 className="text-lg sm:text-2xl md:text-4xl lg:text-4xl font-bold text-white font-poppins">
             Listen to Our Customers
           </h1>
-          <p className="mt-4 text-white text-xs sm:text-base">
+          <p className="mt-1 sm:mt-2 lg:mt-4 text-white text-xs sm:text-base">
             Our customers love our toys! Read their reviews to see why they keep
             coming back.
           </p>
@@ -41,7 +41,7 @@ const Testimonials = () => {
       </div>
 
       {/* Slider Section - 60% Width */}
-      <div className="w-full sm:w-4/5 md:w-11/12 lg:w-3/5 mx-auto relative pb-14 lg:h-[350px]">
+      <div className="w-full sm:w-4/5 md:w-11/12 lg:w-3/5 mx-auto relative">
         {topReviews.length > 0 ? (
           <>
             <Slider ref={sliderRef} {...settings}>
@@ -56,7 +56,7 @@ const Testimonials = () => {
                         {[1, 2, 3, 4, 5].map((star) => (
                           <span
                             key={star}
-                            className={`text-lg ${
+                            className={`text-xs sm:text-sm lg:text-lg ${
                               review.rating >= star
                                 ? "text-yellow-500"
                                 : "text-gray-400"
@@ -66,7 +66,7 @@ const Testimonials = () => {
                           </span>
                         ))}
                       </div>
-                      <p className="text-[10px] sm:text-xs lg:text-sm font-roboto">
+                      <p className="text-xs sm:text-sm lg:text-sm font-roboto">
                         {review.comment || "No feedback provided."}
                       </p>
                     </div>
@@ -78,7 +78,7 @@ const Testimonials = () => {
             {/* Navigation Buttons */}
             <button
               onClick={() => sliderRef.current.slickPrev()}
-              className={`absolute top-1/2 transform -translate-y-1/2 -mt-6 -left-6 sm:-left-8 md:-left-10 lg:-left-12 z-20 p-1 sm:p-1 md:p-2 lg:p-[10px] rounded-full bg-white shadow-md transition ${
+              className={`absolute top-1/2 transform -translate-y-1/2 -left-6 sm:-left-8 md:-left-10 lg:-left-12 z-20 p-1 sm:p-1 md:p-2 lg:p-[10px] rounded-full bg-white shadow-md transition ${
                 currentIndex === 0 ? "hidden" : "block"
               }`}
               aria-label="Previous Slide"
@@ -88,7 +88,7 @@ const Testimonials = () => {
 
             <button
               onClick={() => sliderRef.current.slickNext()}
-              className={`absolute top-1/2 transform -translate-y-1/2 -mt-6 -right-4 sm:right-8 md:right-3 lg:right-11 z-20 p-1 sm:p-1 md:p-2 lg:p-[10px] rounded-full bg-white shadow-md transition ${
+              className={`absolute top-1/2 transform -translate-y-1/2 -right-4 sm:right-8 md:right-3 lg:right-11 z-20 p-1 sm:p-1 md:p-2 lg:p-[10px] rounded-full bg-white shadow-md transition ${
                 currentIndex >= topReviews.length - settings.slidesToShow
                   ? "hidden"
                   : "block"
@@ -101,8 +101,8 @@ const Testimonials = () => {
         ) : (
           <div className="flex justify-center items-center">
             <h1 className="text-2xl md:text-2xl lg:text-3xl text-center mt-28 font-medium text-white font-poppins dark:text-white">
-            There are no reviews yet!
-          </h1>
+              There are no reviews yet!
+            </h1>
           </div>
         )}
       </div>
