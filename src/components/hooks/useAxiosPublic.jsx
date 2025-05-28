@@ -1,11 +1,11 @@
 import axios from "axios";
 
 const axiosPublic = axios.create({
-    baseURL: "https://backend.toyhouseglobal.com:8080",
-})
+  baseURL: "https://backend.toyhouseglobal.com",
+});
 
 const useAxiosPublic = () => {
-    return axiosPublic;
+  return axiosPublic;
 };
 
 export default useAxiosPublic;
